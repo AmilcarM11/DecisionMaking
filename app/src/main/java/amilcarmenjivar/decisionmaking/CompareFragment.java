@@ -2,6 +2,7 @@ package amilcarmenjivar.decisionmaking;
 
 import android.graphics.Color;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
@@ -57,6 +58,7 @@ public class CompareFragment extends Fragment implements ActionBar.OnNavigationL
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_compare, container, false);
 
@@ -92,7 +94,16 @@ public class CompareFragment extends Fragment implements ActionBar.OnNavigationL
         return rootView;
     }
 
-   @Override
+    @Override
+    public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
+        super.onViewStateRestored(savedInstanceState);
+        if(savedInstanceState != null) {
+            mSelectedJudge = savedInstanceState.getInt(ARG_SELECTED_JUDGE, mSelectedJudge);
+            inconsistentCriteria = savedInstanceState.getBooleanArray(STATE_CONSISTENT_CRITERIA);
+        }
+    }
+
+    @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putInt(ARG_CURRENT_PAGE, mCurrentPage); // Current page
