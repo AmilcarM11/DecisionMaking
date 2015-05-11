@@ -125,7 +125,7 @@ public class MainActivity extends ActionBarActivity implements NavigationDrawerF
             NavigationItem item = getNavDrawerItems().get(position);
 
             if(item.type == NavigationItem.Type.OTHER) {
-                replaceFragment(ResultsFragment.newInstance(position));
+                replaceFragment(ResultsFragment.newInstance());
                 return;
 
             } else if( lastSelected >= 0 && lastSelected < navItems ) {

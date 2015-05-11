@@ -2,84 +2,191 @@ package amilcarmenjivar.decisionmaking;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.view.PagerTabStrip;
+import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TableLayout;
-import android.widget.TableRow;
-import android.widget.TextView;
 
-import java.text.DecimalFormat;
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 
-/**
- *
- * Created by Amilcar Menjivar on 29/04/2015.
- */
-public class ResultsFragment extends Fragment {
 
-    private static final String ARG_PAGE_INDEX = "navigation_page_index";
+public class ResultsFragment extends Fragment implements ResultProvider {
 
-    private DecimalFormat dFormat = new DecimalFormat("#.0000");
+    private static final String ARG_CURRENT_PAGE = "selected_page";
+
+    private int mCurrentPage = 0;
+
+    private Result mResult;
+
+    private ViewPager mPager;
+
+    public static ResultsFragment newInstance() {
+        ResultsFragment fragment = new ResultsFragment();
+        Bundle args = new Bundle();
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    public ResultsFragment() {}
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if(savedInstanceState != null) {
+            mCurrentPage = savedInstanceState.getInt(ARG_CURRENT_PAGE);
+        }
+        mResult = DecisionAlgorithm.getResults();
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_results, container, false);
-        TableLayout table = (TableLayout) rootView.findViewById(R.id.table_results);
 
-        List<String> profiles = InfoCenter.getProfiles();
-        List<String> candidates = InfoCenter.getCandidates();
-        double[][] data = DecisionAlgorithm.getResults().result;
+        // Pager for comparison's criteria
+        mPager = (ViewPager) rootView.findViewById(R.id.results_viewPager);
+        ResultsPagerAdapter mPageAdapter = new ResultsPagerAdapter(getActivity().getSupportFragmentManager());
+        mPager.setAdapter(mPageAdapter);
+        mPager.setOnPageChangeListener(mPageAdapter);
 
-        for(int p=0; p<profiles.size(); p++) {
-            TableRow titleRow = (TableRow) inflater.inflate(R.layout.row_result_title, container, false);
+        // PagerTabStrip
+        PagerTabStrip mPagerTabStrip = (PagerTabStrip) rootView.findViewById(R.id.tabStrip);
+        mPagerTabStrip.setDrawFullUnderline(true);
 
-            // Profile title
-            TextView title = (TextView) titleRow.findViewById(R.id.result_title);
-            title.setText(profiles.get(p));
-            table.addView(titleRow);
-
-            // Get Results
-            double[][] results = new double[candidates.size()][2];
-            for (int c = 0; c < results.length; c++) {
-                results[c][0] = c;
-                results[c][1] = data[c][p];
-            }
-
-            // Order Results (descendant)
-            Arrays.sort(results, new Comparator<double[]>() {
-                public int compare(double[] d1, double[] d2) {
-                    Double numOfKeys1 = d1[1];
-                    Double numOfKeys2 = d2[1];
-                    return numOfKeys2.compareTo(numOfKeys1);
-                }
-            });
-
-            // Display Results
-            for (int c = 0; c < candidates.size(); c++) {
-                View row = inflater.inflate(R.layout.row_result, table, false);
-                TextView score = (TextView) row.findViewById(R.id.result_score);
-                TextView name = (TextView) row.findViewById(R.id.result_candidate);
-
-                name.setText(candidates.get((int) results[c][0]));
-                score.setText(dFormat.format(results[c][1]));
-
-                table.addView(row);
-            }
+        // Scroll to page
+        if(mCurrentPage != 0) {
+            setPage(mCurrentPage);
         }
+
         return rootView;
     }
 
-    public static ResultsFragment newInstance(int pageIndex) {
-        ResultsFragment fragment = new ResultsFragment();
-        Bundle args = new Bundle();
-        args.putInt(ARG_PAGE_INDEX, pageIndex);
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt(ARG_CURRENT_PAGE, mCurrentPage); // Current page
+    }
 
-        fragment.setArguments(args);
-        return fragment;
+    public void setPage(int page) {
+        mCurrentPage = page;
+        mPager.setCurrentItem(mCurrentPage, true);
+    }
+
+    @Override
+    public List<String> getCriteriaForPage(int page) {
+        switch(Pages.values()[page]) {
+            case CANDIDATES_PER_PROFILE:
+            case ATTRIBUTES_PER_PROFILE:
+                return InfoCenter.getProfiles();
+            case CANDIDATES_PER_ATTRIBUTE:
+            case PROFILES_PER_ATTRIBUTE:
+                return InfoCenter.getAttributes();
+            case ATTRIBUTES_PER_CANDIDATE:
+            case PROFILES_PER_CANDIDATE:
+                return InfoCenter.getCandidates();
+        }
+        return null;
+    }
+
+    @Override
+    public List<String> getElementsForPage(int page) {
+        switch(Pages.values()[page]) {
+            case CANDIDATES_PER_PROFILE:
+            case CANDIDATES_PER_ATTRIBUTE:
+                return InfoCenter.getCandidates();
+            case ATTRIBUTES_PER_PROFILE:
+            case ATTRIBUTES_PER_CANDIDATE:
+                return InfoCenter.getAttributes();
+            case PROFILES_PER_CANDIDATE:
+            case PROFILES_PER_ATTRIBUTE:
+                return InfoCenter.getProfiles();
+        }
+        return null;
+    }
+
+    @Override
+    public double[][] getDataForPage(int page) {
+        Pages p = Pages.values()[page];
+        switch(p) {
+            case CANDIDATES_PER_PROFILE:
+                return mResult.resultMatrix;
+            case ATTRIBUTES_PER_PROFILE:
+                return mResult.profilesMatrix;
+            case CANDIDATES_PER_ATTRIBUTE:
+                return mResult.attributesMatrix;
+            case ATTRIBUTES_PER_CANDIDATE:
+                return transpose(mResult.attributesMatrix);
+            case PROFILES_PER_CANDIDATE:
+                return transpose(mResult.resultMatrix);
+            case PROFILES_PER_ATTRIBUTE:
+                return transpose(mResult.profilesMatrix);
+        }
+        return new double[0][];
+    }
+
+    private double[][] transpose(double[][] matrix) {
+        double[][] transposed = new double[matrix[0].length][matrix.length];
+        for(int i = 0; i < matrix.length; i++) {
+            for(int e = 0; e<matrix[i].length; e++) {
+                transposed[e][i] = matrix[i][e];
+            }
+        }
+        return transposed;
+    }
+
+    public class ResultsPagerAdapter extends FragmentStatePagerAdapter implements ViewPager.OnPageChangeListener {
+
+        ResultPageFragment[] pages;
+
+        public ResultsPagerAdapter(FragmentManager fm) {
+            super(fm);
+            pages = new ResultPageFragment[6];
+        }
+
+        @Override
+        public Fragment getItem(int i) {
+            if(pages[i] == null) {
+                pages[i] = ResultPageFragment.newInstance(i, ResultsFragment.this);
+            }
+            return pages[i];
+        }
+
+        @Override
+        public CharSequence getPageTitle(int position) {
+            return getString(Pages.values()[position].stringRes);
+        }
+
+        @Override
+        public void onPageScrolled(int i, float v, int i2) {}
+
+        @Override
+        public void onPageSelected(int i) {
+            mCurrentPage = i;
+        }
+
+        @Override
+        public void onPageScrollStateChanged(int i) {}
+
+        @Override
+        public int getCount() {
+            return pages.length;
+        }
+    }
+
+    private enum Pages {
+        CANDIDATES_PER_PROFILE      (R.string.candidates_per_profile),
+        ATTRIBUTES_PER_PROFILE      (R.string.attributes_per_profile),
+        CANDIDATES_PER_ATTRIBUTE    (R.string.candidates_per_attribute),
+        ATTRIBUTES_PER_CANDIDATE    (R.string.attributes_per_candidate),
+        PROFILES_PER_CANDIDATE      (R.string.profiles_per_candidate),
+        PROFILES_PER_ATTRIBUTE      (R.string.profiles_per_attribute);
+
+        int stringRes;
+        Pages(int stringRes){
+            this.stringRes = stringRes;
+        }
     }
 
 }

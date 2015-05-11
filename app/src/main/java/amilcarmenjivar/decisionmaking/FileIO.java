@@ -185,17 +185,17 @@ public class FileIO {
 
                 // Write Candidates X Attributes matrix
                 bw.write("Attributes Matrix\n");
-                writeMatrix(bw, result.mpca, "Attributes", candidates, attributes);
+                writeMatrix(bw, result.attributesMatrix, "Attributes", candidates, attributes);
                 bw.newLine();
 
                 // Write Attributes X Profiles matrix
                 bw.write("Profiles Matrix\n");
-                writeMatrix(bw, result.mpap, "Profiles", attributes, profiles);
+                writeMatrix(bw, result.profilesMatrix, "Profiles", attributes, profiles);
                 bw.newLine();
 
                 // Write Result Candidates X Profiles matrix
                 bw.write("Results Matrix\n");
-                writeMatrix(bw, result.result, "Results", candidates, profiles);
+                writeMatrix(bw, result.resultMatrix, "Results", candidates, profiles);
             }
 
             bw.flush();

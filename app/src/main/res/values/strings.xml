@@ -49,5 +49,11 @@
     <string name="action_open_instance">Open</string>
     <string name="insufficient_elements">Insuficient %s</string>
     <string name="import_file">Import File</string>
+    <string name="candidates_per_profile">Candidates per Profile</string>
+    <string name="candidates_per_attribute">Candidates per Attribute</string>
+    <string name="attributes_per_profile">Attributes per Profile</string>
+    <string name="attributes_per_candidate">Attributes per Candidate</string>
+    <string name="profiles_per_attribute">Profiles per Attribute</string>
+    <string name="profiles_per_candidate">Profiles per Candidate</string>
 
 </resources>
