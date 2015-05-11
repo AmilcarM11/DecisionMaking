@@ -22,13 +22,14 @@ public class Pair {
     }
 
     public int hashCode() {
-        return elem1.hashCode() * 31 + elem2.hashCode();
+        return elem1.hashCode() + elem2.hashCode();
     }
 
     public boolean equals(Object o) {
         if(o != null && o instanceof Pair) {
             Pair pair = (Pair) o;
-            return elem1.equals(pair.elem1) && elem2.equals(pair.elem2);
+            return elem1.equals(pair.elem1) && elem2.equals(pair.elem2)
+                    || elem1.equals(pair.elem2) && elem2.equals(pair.elem1);
         }
         return false;
     }
