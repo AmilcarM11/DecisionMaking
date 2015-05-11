@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!--
+    <color name="primaryColor">#3F51B5</color>
+    <color name="primaryColorDark">#303f9f</color>
+    <color name="accentColor">#64FFDA</color>
+    <color name="seekerColor">#009688</color>
+    -->
+    <color name="primaryColor">#1E88E5</color>
+    <color name="primaryColorDark">#1565C0</color>
+    <color name="accentColor">#2962FF</color>
+
+
+    <color name="seekerColor">#00B8D4</color>
+
+</resources>
