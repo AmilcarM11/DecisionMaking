@@ -116,7 +116,14 @@ public class ComparisonFragment extends Fragment {
             int index = textView.getIndex();
             int movement = textView.getMovement();
 
-            mBars.get(index).changeValue(movement);
+            if(mBars.get(index).changeValue(movement)) {
+                int value = mBars.get(index).getSelectedValue();
+                if(mElements==0) {
+                    InfoCenter.writeAttributesInfo(mCriteria, index, mJudge, value);
+                } else {
+                    InfoCenter.writePreferencesInfo(mCriteria, index, mJudge, value);
+                }
+            }
         }
     };
 

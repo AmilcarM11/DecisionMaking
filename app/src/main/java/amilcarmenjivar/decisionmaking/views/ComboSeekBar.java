@@ -87,12 +87,14 @@ public class ComboSeekBar extends SeekBar {
         setProgressDrawable(new StepBarDrawable((StepBarDrawable) this.getProgressDrawable(), this, mThumb.getRadius(), mDots, color, mTextSize, mIsMultiline));
     }
 
-    public void changeValue(int increment) {
+    public boolean changeValue(int increment) {
         int position = getSelectedPosition();
         int newPosition = position + increment;
         if(newPosition >= 0 && newPosition < mDots.size()) {
             setSelection(newPosition);
+            return true;
         }
+        return false;
     }
 
     public void setInfo(int index, int value) {
