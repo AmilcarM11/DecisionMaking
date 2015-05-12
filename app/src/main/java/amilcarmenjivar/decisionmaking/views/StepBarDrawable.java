@@ -106,14 +106,19 @@ public class StepBarDrawable extends Drawable {
             canvas.drawLine(0, height, getBounds().right, height, unselectLinePaint);
             return;
         }
+        // First paint the dots and the line
         float base = 1.0f / 7;
         for (Dot dot : mDots) {
             int value = Math.abs(dot.value);
             float radius = mDotRadius * base * (value < 3 ? 3 : value);
             canvas.drawCircle(dot.mX, height, radius, circleLinePaint);
-            drawText(canvas, dot, dot.mX, height);
         }
         canvas.drawLine(mDots.get(0).mX, height, mDots.get(mDots.size() - 1).mX, height, unselectLinePaint);
+
+        // Now paint the text.
+        for (Dot dot : mDots) {
+            drawText(canvas, dot, dot.mX, height);
+        }
     }
 
     /**
