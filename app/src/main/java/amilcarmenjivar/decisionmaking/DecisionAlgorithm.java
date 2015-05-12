@@ -187,7 +187,7 @@ public class DecisionAlgorithm {
 
     private static double translatePreference(int p) {
         int maxValue = 9;
-        int minValue = -1;
+        int minValue = -9;
 
         if(p>maxValue) p = maxValue;
         if(p<minValue) p = minValue;
