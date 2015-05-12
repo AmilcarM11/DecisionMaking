@@ -37,26 +37,7 @@ public class MainActivity extends ActionBarActivity implements NavigationDrawerF
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Need to load information
-        if(InfoCenter.isReloadNeeded()) {
-            Log.wtf("DecisionMaker", "");
-            if (FileIO.isTempFileFound(this)) {
-                Log.wtf("DecisionMaker", "Loading data from temp file...");
-                if(InfoCenter.reload(this)) {
-                    Log.wtf("DecisionMaker", "Loading successful!");
-                } else {
-                    Log.wtf("DecisionMaker", "Loading failed. Using test values instead.");
-                }
-            } else {
-                Log.wtf("DecisionMaker", "Temp file not found. Starting SetupActivity");
-                Intent anIntent = new Intent(this, SetupActivity.class);
-                //startActivityForResult(anIntent, SetupActivity.SETUP_ACTIVITY_ID);
-                startActivity(anIntent);
-                return;
-            }
-        } else {
-            Log.wtf("DecisionMaker", "No need to reload, apparently!");
-        }
+        // Anything needed to be loaded has already been.
 
         mNavigationItems = InfoCenter.getNavigationItems(this);
         setContentView(R.layout.activity_main);
@@ -220,17 +201,13 @@ public class MainActivity extends ActionBarActivity implements NavigationDrawerF
 
         return super.onOptionsItemSelected(item);
     }
-//
-//    @Override
-//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-//        if(requestCode == SetupActivity.SETUP_ACTIVITY_ID){
-//            refreshDrawer();
-//        }
-//        super.onActivityResult(requestCode, resultCode, data);
-//    }
 
     @Override
     public void onFileChosen(String fileName) {
+        if(fileName == null) {
+            return; // Do nothing
+        }
+
         // Load file
         Toast.makeText(this, "Loading: "+fileName, Toast.LENGTH_SHORT).show();
         if(InfoCenter.importData(fileName)){
@@ -248,8 +225,8 @@ public class MainActivity extends ActionBarActivity implements NavigationDrawerF
             try{ // TODO: use string resources
                 if(userInput == null || userInput.equals("")) {
                     Toast.makeText(this, "Enter a valid name.", Toast.LENGTH_SHORT).show();
-                } else if(InfoCenter.exportData(userInput+".csv")) {
-                    Toast.makeText(this, "File saved: " + userInput + ".csv", Toast.LENGTH_SHORT).show();
+                } else if(InfoCenter.exportData(userInput.trim()+".csv")) {
+                    Toast.makeText(this, "File saved: " + userInput.trim() + ".csv", Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(this, "Saving Failed!", Toast.LENGTH_SHORT).show();
                 }
@@ -259,4 +236,5 @@ public class MainActivity extends ActionBarActivity implements NavigationDrawerF
             }
         }
     }
+
 }

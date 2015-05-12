@@ -1,5 +1,6 @@
 package amilcarmenjivar.decisionmaking;
 
+import android.content.Intent;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
@@ -54,10 +55,11 @@ public class SetupActivity extends ActionBarActivity implements DialogAddFragmen
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if(id == android.R.id.home) {
-            if(!checkDataIntegrity()) {
-                return true;
+            if(checkDataIntegrity()) {
+                startMainActivity();
             }
-            //setResult(RESULT_OK);
+            return true;
+
         } else if(id == R.id.action_add) {
             DialogAddFragment fragment = DialogAddFragment.newInstance(mCurrentPage, this);
             fragment.show(getSupportFragmentManager(), "DialogAddFragment");
@@ -69,8 +71,7 @@ public class SetupActivity extends ActionBarActivity implements DialogAddFragmen
     @Override
     public void onBackPressed() {
         if(checkDataIntegrity()) {
-            //setResult(RESULT_OK);
-            super.onBackPressed();
+            startMainActivity();
         }
     }
 
@@ -93,6 +94,13 @@ public class SetupActivity extends ActionBarActivity implements DialogAddFragmen
             }
             mPageAdapter.refresh();
         }
+    }
+
+    private void startMainActivity() {
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivity(intent);
+        finish();
     }
 
     // Check if there is at least 1 judge, 1 profile, 2 attributes and 2 candidates.

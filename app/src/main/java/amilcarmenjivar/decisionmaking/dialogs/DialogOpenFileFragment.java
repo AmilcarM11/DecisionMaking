@@ -29,7 +29,11 @@ public class DialogOpenFileFragment extends DialogFragment {
         if( mFileList == null || mFileList.length == 0) {
             builder.setMessage("No valid files found"); // TODO: stringRes & FileIO.SAVE_DIRECTORY
             builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialog, int id) { }
+                public void onClick(DialogInterface dialog, int id) {
+                    if (mListener != null) {
+                        mListener.onFileChosen(null);
+                    }
+                }
             });
         } else {
             builder.setItems(mFileList, new DialogInterface.OnClickListener() {
@@ -40,7 +44,11 @@ public class DialogOpenFileFragment extends DialogFragment {
                 }
             });
             builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialog, int id) { }
+                public void onClick(DialogInterface dialog, int id) {
+                    if (mListener != null) {
+                        mListener.onFileChosen(null);
+                    }
+                }
             });
         }
         return builder.create();
