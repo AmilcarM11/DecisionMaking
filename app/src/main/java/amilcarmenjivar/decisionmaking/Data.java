@@ -65,7 +65,7 @@ public class Data {
                 for(Pair pair : newPairs) {
                     if(!oldPairs.contains(pair)) {
                         Map<String, Integer> judgesMap = new LinkedHashMap<String, Integer>();
-                        for(String judge : judges)
+                        for(String judge: judges)
                             judgesMap.put(judge, DEFAULT_VALUE);
                         data.get(criteria).put(pair, judgesMap);
                     }
@@ -76,6 +76,19 @@ public class Data {
                 for(Pair pair : newPairs) {
                     if(!newPairs.contains(pair)) {
                         data.get(criteria).remove(pair);
+                    }
+                }
+
+            // Reordering entries
+            } else {
+                for(Pair pair : newPairs) {
+                    if (oldPairs.contains(pair.reverse())) {
+                        Map<String, Integer> judgesMap = data.get(criteria).remove(pair.reverse());
+                        for(String judge : judges) {
+                            int value = judgesMap.get(judge);
+                            judgesMap.put(judge, value * -1);
+                        }
+                        data.get(criteria).put(pair, judgesMap);
                     }
                 }
             }

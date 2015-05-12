@@ -1,5 +1,6 @@
 package amilcarmenjivar.decisionmaking;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -8,8 +9,10 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
-import android.widget.ListView;
 import android.widget.Toast;
+
+import com.terlici.dragndroplist.DragNDropAdapter;
+import com.terlici.dragndroplist.DragNDropListView;
 
 import java.util.List;
 
@@ -21,7 +24,7 @@ public class ElementsFragment extends Fragment implements AdapterView.OnItemClic
     private static final String ARG_ELEMENT_TYPE = "arg_elements";
 
     private int mElements;
-    private ArrayAdapter<String> mAdapter;
+    private ElementsAdapter mAdapter;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -35,10 +38,10 @@ public class ElementsFragment extends Fragment implements AdapterView.OnItemClic
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_elements, container, false);
-        ListView listView = (ListView) rootView.findViewById(R.id.setup_elements_list);
+        DragNDropListView listView = (DragNDropListView) rootView.findViewById(R.id.setup_elements_list);
 
-        mAdapter = createAdapter();
-        listView.setAdapter(mAdapter);
+        mAdapter = new ElementsAdapter(getActivity());
+        listView.setDragNDropAdapter(mAdapter);
 
         return rootView;
     }
@@ -61,27 +64,6 @@ public class ElementsFragment extends Fragment implements AdapterView.OnItemClic
         Toast.makeText(getActivity(), "Removing :"+ t, Toast.LENGTH_SHORT).show();
     }
 
-    private ArrayAdapter<String> createAdapter() {
-        return new ArrayAdapter<String>(this.getActivity(), R.layout.list_item, R.id.list_itemText, elements()){
-            @Override
-            public View getView(final int position, View convertView, ViewGroup parent) {
-                View view = super.getView(position, convertView, parent);
-                ImageButton button = (ImageButton) view.findViewById(R.id.list_item_removeButton);
-                button.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        String name = mAdapter.getItem(position);
-                        String message = tryDelete(position) ? "Deleted "+name : "Failed to delete "+name;
-                        Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
-                        notifyDataSetInvalidated();
-                    }
-                });
-                return view;
-            }
-        };
-    }
-
-
     private List<String> elements() {
         if (mElements == 0) {
             return InfoCenter.getCandidates();
@@ -103,6 +85,59 @@ public class ElementsFragment extends Fragment implements AdapterView.OnItemClic
             return InfoCenter.removeProfile(position);
         } else {
             return InfoCenter.removeJudge(position);
+        }
+    }
+
+    private void onListReOrdered() {
+        if(mElements == 0) { // Candidates;
+            InfoCenter.getAttributeData().updateElements();
+        } else if(mElements == 1) { // Attributes
+            InfoCenter.getProfileData().updateElements();
+        }
+    }
+
+    private class ElementsAdapter extends ArrayAdapter<String> implements DragNDropAdapter {
+
+        public ElementsAdapter(Context context) {
+            super(context, R.layout.list_item, R.id.list_itemText, elements());
+        }
+
+        @Override
+        public View getView(final int position, View convertView, ViewGroup parent) {
+            View view = super.getView(position, convertView, parent);
+            ImageButton button = (ImageButton) view.findViewById(R.id.list_item_removeButton);
+            button.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    String name = mAdapter.getItem(position);
+                    String message = tryDelete(position) ? "Deleted "+name : "Failed to delete "+name;
+                    Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
+                    notifyDataSetInvalidated();
+                }
+            });
+            return view;
+        }
+
+        @Override
+        public int getDragHandler() {
+            return R.id.handler;
+        }
+
+        @Override
+        public void onItemDrag(DragNDropListView parent, View view, int position, long id) { }
+
+        @Override
+        public void onItemDrop(DragNDropListView parent, View view, int startPosition, int endPosition, long id) {
+            List<String> list = elements();
+
+            if(startPosition > endPosition) {
+                String element = list.remove(startPosition);
+                list.add(endPosition, element);
+            } else if(startPosition < endPosition) {
+                String element = list.remove(startPosition);
+                list.add(endPosition, element);
+            }
+            onListReOrdered();
         }
     }
 }
