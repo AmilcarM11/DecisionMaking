@@ -9,9 +9,9 @@
     -->
     <color name="primaryColor">#1E88E5</color>
     <color name="primaryColorDark">#1565C0</color>
-    <color name="accentColor">#2962FF</color>
+    <color name="accentColor">#00B8D4</color>
 
-
+    <color name="inconsistentColor">#FF3D00</color>
     <color name="seekerColor">#00B8D4</color>
 
 </resources>

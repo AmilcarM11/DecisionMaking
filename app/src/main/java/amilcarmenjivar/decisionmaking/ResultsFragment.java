@@ -4,13 +4,14 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
-import android.support.v4.view.PagerTabStrip;
 import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import java.util.List;
+
+import amilcarmenjivar.decisionmaking.views.PagerTabStrip;
 
 
 public class ResultsFragment extends Fragment implements ResultProvider {
@@ -50,10 +51,6 @@ public class ResultsFragment extends Fragment implements ResultProvider {
         ResultsPagerAdapter mPageAdapter = new ResultsPagerAdapter(getActivity().getSupportFragmentManager());
         mPager.setAdapter(mPageAdapter);
         mPager.setOnPageChangeListener(mPageAdapter);
-
-        // PagerTabStrip
-        PagerTabStrip mPagerTabStrip = (PagerTabStrip) rootView.findViewById(R.id.tabStrip);
-        mPagerTabStrip.setDrawFullUnderline(true);
 
         // Scroll to page
         if(mCurrentPage != 0) {

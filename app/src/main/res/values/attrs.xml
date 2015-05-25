@@ -6,4 +6,9 @@
         <attr name="textSize" format="dimension" />
     </declare-styleable>
 
+    <declare-styleable name="PagerTabStrip">
+        <attr name="tabColor" format="color" />
+        <attr name="drawFullUnderline" format="boolean" />
+    </declare-styleable>
+
 </resources>
