@@ -1,12 +1,10 @@
 package amilcarmenjivar.decisionmaking;
 
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
-import android.support.v4.view.PagerTabStrip;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
 import android.view.LayoutInflater;
@@ -18,19 +16,25 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
+import java.text.DecimalFormat;
 import java.util.List;
+
+import amilcarmenjivar.decisionmaking.views.PagerTabStrip;
+
+import static amilcarmenjivar.decisionmaking.DecisionAlgorithm.getPreferenceConsistency;
+import static amilcarmenjivar.decisionmaking.DecisionAlgorithm.isConsistencyAcceptable;
+import static amilcarmenjivar.decisionmaking.DecisionAlgorithm.translatePreference;
 
 /**
  *
  * Created by Amilcar Menjivar on 28/04/2015.
  */
-public class CompareFragment extends Fragment implements ActionBar.OnNavigationListener {
+public class CompareFragment extends Fragment implements ActionBar.OnNavigationListener, OnComparisonChangedListener {
 
     private static final String ARG_PAGE_INDEX = "navigation_page_index";
     private static final String ARG_ELEMENTS = "selected_elements";
     private static final String ARG_CURRENT_PAGE = "selected_page";
     private static final String ARG_SELECTED_JUDGE = "selected_judge";
-    private static final String STATE_CONSISTENT_CRITERIA = "consistent_data";
 
     private int mElements = 0;
     private int mCurrentPage = 0;
@@ -41,6 +45,9 @@ public class CompareFragment extends Fragment implements ActionBar.OnNavigationL
     private ComparingPagerAdapter mPageAdapter;
 
     private boolean[] inconsistentCriteria = new boolean[0];
+    private double[] consistencies = new double[0];
+
+    DecimalFormat formatter = new DecimalFormat("0.000");
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -50,10 +57,10 @@ public class CompareFragment extends Fragment implements ActionBar.OnNavigationL
         mElements = getArguments().getInt(ARG_ELEMENTS, 0);
         mCurrentPage = getArguments().getInt(ARG_CURRENT_PAGE, 0);
         inconsistentCriteria = new boolean[elements().size()];
+        consistencies = new double[elements().size()];
         if(savedInstanceState != null ) {
             mCurrentPage = savedInstanceState.getInt(ARG_CURRENT_PAGE, 0);
             mSelectedJudge = savedInstanceState.getInt(ARG_SELECTED_JUDGE, 0);
-            inconsistentCriteria = savedInstanceState.getBooleanArray(STATE_CONSISTENT_CRITERIA);
         }
     }
 
@@ -70,7 +77,6 @@ public class CompareFragment extends Fragment implements ActionBar.OnNavigationL
 
         // PagerTabStrip
         mPagerTabStrip = (PagerTabStrip) rootView.findViewById(R.id.tabStrip);
-        mPagerTabStrip.setDrawFullUnderline(true);
 
         // Scroll to page
         if(mCurrentPage != 0) {
@@ -99,7 +105,6 @@ public class CompareFragment extends Fragment implements ActionBar.OnNavigationL
         super.onViewStateRestored(savedInstanceState);
         if(savedInstanceState != null) {
             mSelectedJudge = savedInstanceState.getInt(ARG_SELECTED_JUDGE, mSelectedJudge);
-            inconsistentCriteria = savedInstanceState.getBooleanArray(STATE_CONSISTENT_CRITERIA);
         }
     }
 
@@ -108,17 +113,14 @@ public class CompareFragment extends Fragment implements ActionBar.OnNavigationL
         super.onSaveInstanceState(outState);
         outState.putInt(ARG_CURRENT_PAGE, mCurrentPage); // Current page
         outState.putInt(ARG_SELECTED_JUDGE, mSelectedJudge); // Selected Judge
-        outState.putBooleanArray(STATE_CONSISTENT_CRITERIA, inconsistentCriteria); // Inconsistent
     }
 
     @Override
     public boolean onNavigationItemSelected(int position, long id) {
         mSelectedJudge = position;
+        checkConsistency();
         if(mPageAdapter != null)
             mPageAdapter.refresh();
-
-        // TODO: get correct inconsistent data.
-        inconsistentCriteria = new boolean[elements().size()];
         return true;
     }
 
@@ -139,46 +141,70 @@ public class CompareFragment extends Fragment implements ActionBar.OnNavigationL
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    public void onComparisonChanged(int criteria, int judge) {
+        double oldConsistency = consistencies[criteria];
+        consistencies[criteria] = getConsistency(criteria, judge);
+        inconsistentCriteria[criteria] = !isConsistencyAcceptable(consistencies[criteria]);
+        double diff = consistencies[criteria] - oldConsistency;
+
+        // Set tab strip color
+        updateTabStrip();
+
+        // Toast tracking consistency changes
+        String toast = "Consistency" + (diff > 0 ? "--" : "++");
+        Toast.makeText(getActivity(), toast, Toast.LENGTH_SHORT).show();
+    }
+
+    private void updateTabStrip() {
+        if( inconsistentCriteria[mCurrentPage] ) {
+            mPagerTabStrip.setTabIndicatorColorResource(R.color.inconsistentColor);
+        } else {
+            mPagerTabStrip.setTabIndicatorColorResource(R.color.accentColor);
+        }
+    }
+
+
+    // Checks consistency per criteria and judge
+    private double getConsistency(int criteria, int judge) {
+        int n = mElements == 0 ? InfoCenter.getCandidates().size() : InfoCenter.getAttributes().size();
+        Data data = mElements == 0 ? InfoCenter.getAttributeData() : InfoCenter.getProfileData();
+        int[][][] rawData = data.getRawData();
+        int judges = InfoCenter.getJudges().size();
+
+        double[] vector = new double[rawData[criteria].length];
+
+        if(judge == -1) { // Check overall consistency
+            for(int i = 0; i<vector.length; i++) {
+                double score = 1.0;
+                for(int j = 0; j < judges; j++) {
+                    score *= translatePreference(rawData[criteria][i][j]);
+                }
+                vector[i] = Math.pow(score, 1.0/judges);
+            }
+        } else { // Check per-judge consistency
+            for(int i = 0; i<vector.length; i++) {
+                vector[i] = translatePreference(rawData[criteria][i][judge]);
+            }
+        }
+        return getPreferenceConsistency(n, vector);
+    }
+
     public void setPage(int page) {
         mCurrentPage = page;
         mPager.setCurrentItem(mCurrentPage, true);
     }
 
     private void checkConsistency() {
-        /*
-        * TODO:
-        * Depending on mElements, get attributes or profiles data.
-        *
-        * Option 1:
-         * Per each criteria check consistency (include all judges)
-         * If criteria is inconsistent, check per individual judge.
-         *
-         * Inconsistent per-judge criteria must be announced:
-         * E.g. Judge 1 is inconsistent over Criteria 1
-         *
-        * Option 2:
-         * For each judge, check consistency over each criteria.
-         * Inconsistent criteria will have a red underline on the corresponding tab-judge combination.
-         * Inconsistent criteria will have a warning icon on the navigation drawer.
-         *
-         * Toast message: found X inconsistencies by X judges.
-         *
-        * Option 3:
-         * For each criteria check consistency (include all judges)
-         * Inconsistent criteria will have a warning icon on the navigation drawer.
-         *
-        * */
-
-        // This is just for testing. TODO: get this right.
         for(int i=0; i<inconsistentCriteria.length; i++) {
-            inconsistentCriteria[i] = i % 2 == 1;
+            consistencies[i] = getConsistency(i, mSelectedJudge);
+            inconsistentCriteria[i] = !isConsistencyAcceptable(consistencies[i]);
         }
 
         int count = 0;
         for(boolean b : inconsistentCriteria){
             if(b) count++;
         }
-
         if(count == 0) {
             Toast.makeText(getActivity(), "Current data is consistent", Toast.LENGTH_SHORT).show();
         } else {
@@ -220,7 +246,7 @@ public class CompareFragment extends Fragment implements ActionBar.OnNavigationL
         @Override
         public Fragment getItem(int i) {
             if(pages[i] == null) {
-                pages[i] = ComparisonFragment.newInstance(mElements, i, mSelectedJudge);
+                pages[i] = ComparisonFragment.newInstance(mElements, i, mSelectedJudge, CompareFragment.this);
             }
             return pages[i];
         }
@@ -236,8 +262,11 @@ public class CompareFragment extends Fragment implements ActionBar.OnNavigationL
         @Override
         public void onPageSelected(int i) {
             mCurrentPage = i;
-            int color = inconsistentCriteria[i] ? Color.RED : Color.BLACK;
-            mPagerTabStrip.setTabIndicatorColor(color);
+
+            // Toast consistency
+            double consistency = consistencies[mCurrentPage];
+            Toast.makeText(getActivity(), "Consistency: "+ formatter.format(consistency), Toast.LENGTH_SHORT).show();
+
             refresh();
         }
 
@@ -250,8 +279,10 @@ public class CompareFragment extends Fragment implements ActionBar.OnNavigationL
         }
 
         public void refresh(){
-            if(pages[mCurrentPage] != null)
+            if(pages[mCurrentPage] != null) {
                 pages[mCurrentPage].updateInfo(mElements, mCurrentPage, mSelectedJudge);
+                updateTabStrip();
+            }
         }
 
     }

@@ -94,12 +94,6 @@ public class NavDrawerAdapter extends ArrayAdapter<NavigationItem> {
         // Set Text
         holder.textView.setText( item.getText() );
 
-        // TODO: set icon for type=TYPE_SECTION views ?
-//        if(viewType == TYPE_SECTION) {
-//            holder.textView.setCompoundDrawables(getDrawable(R.drawable.ic_assessment_grey600_24dp), null, null, null);
-//        }
-
-
         // Set the warning icon visible when corresponding
         if(viewType == TYPE_SECTION_CHILD && holder.warningIcon != null) {
             holder.warningIcon.setVisibility( warnings[position] ? View.VISIBLE : View.INVISIBLE );

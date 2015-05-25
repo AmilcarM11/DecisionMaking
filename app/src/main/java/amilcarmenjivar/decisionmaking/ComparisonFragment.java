@@ -26,6 +26,8 @@ public class ComparisonFragment extends Fragment {
 
     private List<ComboSeekBar> mBars;
 
+    private OnComparisonChangedListener mListener;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -33,8 +35,6 @@ public class ComparisonFragment extends Fragment {
         mCriteria = getArguments().getInt(ARG_CRITERIA);
         mJudge = getArguments().getInt(ARG_JUDGE);
     }
-
-    // TODO: save comparisons state?
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -98,8 +98,9 @@ public class ComparisonFragment extends Fragment {
         }
     }
 
-    public static ComparisonFragment newInstance(int elemType, int criteria, int judge) {
+    public static ComparisonFragment newInstance(int elemType, int criteria, int judge, OnComparisonChangedListener listener) {
         ComparisonFragment fragment = new ComparisonFragment();
+        fragment.mListener = listener;
         Bundle args = new Bundle();
         args.putInt(ARG_ELEMENT_TYPE, elemType);
         args.putInt(ARG_CRITERIA, criteria);
@@ -118,11 +119,7 @@ public class ComparisonFragment extends Fragment {
 
             if(mBars.get(index).changeValue(movement)) {
                 int value = mBars.get(index).getSelectedValue();
-                if(mElements==0) {
-                    InfoCenter.writeAttributesInfo(mCriteria, index, mJudge, value);
-                } else {
-                    InfoCenter.writePreferencesInfo(mCriteria, index, mJudge, value);
-                }
+                writeData(index, value);
             }
         }
     };
@@ -132,12 +129,18 @@ public class ComparisonFragment extends Fragment {
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
             ComboSeekBar seekBar = (ComboSeekBar) view;
             int value = seekBar.getSelectedValue();
-            if(mElements==0) {
-                InfoCenter.writeAttributesInfo(mCriteria, position, mJudge, value);
-            } else {
-                InfoCenter.writePreferencesInfo(mCriteria, position, mJudge, value);
-            }
+            writeData(position, value);
         }
     };
+
+    private void writeData(int pair, int value) {
+        if(mElements==0) {
+            InfoCenter.writeAttributesInfo(mCriteria, pair, mJudge, value);
+            mListener.onComparisonChanged(mCriteria, mJudge);
+        } else {
+            InfoCenter.writePreferencesInfo(mCriteria, pair, mJudge, value);
+            mListener.onComparisonChanged(mCriteria, mJudge);
+        }
+    }
 
 }
