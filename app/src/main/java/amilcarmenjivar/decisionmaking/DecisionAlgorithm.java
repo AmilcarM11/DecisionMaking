@@ -99,12 +99,42 @@ public class DecisionAlgorithm {
 
     }
 
+    public static final double MAX_ALLOWED_CONSISTENT_VALUE = 0.10;
+
+    public static boolean isConsistencyAcceptable(double consistency) {
+        return consistency < MAX_ALLOWED_CONSISTENT_VALUE;
+    }
 
     public static boolean isPreferenceConsistent(int elements, double[] vector) {
-        double[][] mp = matrizPreferencia(elements, vector);
+        double consistency = getPreferenceConsistency(elements, vector);
+        return isConsistencyAcceptable(consistency);
+    }
 
+    public static double getPreferenceConsistency(int n, double[] vector) {
+        double[][] mp = matrizPreferencia(n, vector);
+        double[] vp = vectorPreferencia(n, mp);
 
-        return true; // TODO!
+        double nMax = 0.0;
+        for(int i = 0; i<n; i++) {
+            double foo = 0.0;
+            for(int e = 0; e<n; e++) {
+                foo += mp[i][e] * vp[e];
+            }
+            nMax += foo;
+        }
+
+        double CI = (nMax - n) / (n-1);
+        double RI = 1.98 * (n-2) / n;
+
+        return CI / RI;
+    }
+
+    public static double[] translatePreferences(int[] rawPreferences) {
+        double[] preferences = new double[rawPreferences.length];
+        for (int j = 0; j < rawPreferences.length; j++) {
+            preferences[j] = translatePreference(rawPreferences[j]);
+        }
+        return preferences;
     }
 
     // Esto tiene que transformar las preferencias (candidatos por atributos) al vector resultado del atributo
@@ -112,11 +142,7 @@ public class DecisionAlgorithm {
         // Translate integer preferences to valid values.
         double[][] preferences = new double[rawPreferences.length][];
         for(int i = 0; i<rawPreferences.length; i++) {
-            int[] arr = rawPreferences[i];
-            preferences[i] = new double[arr.length];
-            for (int j = 0; j < arr.length; j++) {
-                preferences[i][j] = translatePreference(arr[j]);
-            }
+            preferences[i] = translatePreferences(rawPreferences[i]);
         }
 
         return preferences;
@@ -185,7 +211,7 @@ public class DecisionAlgorithm {
         return vp;
     }
 
-    private static double translatePreference(int p) {
+    public static double translatePreference(int p) {
         int maxValue = 9;
         int minValue = -9;
 
