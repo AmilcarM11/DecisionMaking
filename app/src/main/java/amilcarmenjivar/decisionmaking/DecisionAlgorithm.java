@@ -1,5 +1,8 @@
 package amilcarmenjivar.decisionmaking;
 
+
+import amilcarmenjivar.decisionmaking.data.Result;
+
 /**
  *
  * Created by Amilcar Menjivar on 27/04/2015.
@@ -15,18 +18,12 @@ public class DecisionAlgorithm {
     *
     * */
 
-    public static Result getResults() {
-        int candidates = InfoCenter.getCandidates().size();
-        int attributes = InfoCenter.getAttributes().size();
-        int profiles = InfoCenter.getProfiles().size();
-        int judges = InfoCenter.getJudges().size();
+
+    public static Result getResults(int candidates, int attributes,int profiles, int judges,
+            int[][][] attributesData, int[][][] profilesData ) {
 
         int cPairs = candidates * (candidates-1)/2;
         int aPairs = attributes * (attributes-1)/2;
-
-        // Comparar candidatos por Atributo
-        // Attributes X cPairs X Judges
-        int[][][] attributesData = InfoCenter.getAttributeData().getRawData();
 
         // Matriz de Preferencias por Atributo (Candidatos x Atributos)
         double[][][] mcaj = new double[attributes][cPairs][judges];
@@ -53,9 +50,6 @@ public class DecisionAlgorithm {
                 mpca[i][j] = vp[i];
             }
         }
-
-        // Comparar candidatos por Atributo
-        int[][][] profilesData = InfoCenter.getProfileData().getRawData();
 
         // Matriz de Preferencias por Perfil (Atributos*Perfil)
         double[][][] mcpj = new double[profiles][aPairs][judges];
@@ -88,7 +82,6 @@ public class DecisionAlgorithm {
         return new Result(attributesData, profilesData,
                 mcaj, mvca, mmpa, mpca, mcpj, mvcp, mmpp, mpap, mMultiply);
 
-
         // 4. Presentar información
         // Gráfico de Radar (Candidatos*Atributos)
         // Gráfico de Radar (Atributos
@@ -111,22 +104,33 @@ public class DecisionAlgorithm {
     }
 
     public static double getPreferenceConsistency(int n, double[] vector) {
-        double[][] mp = matrizPreferencia(n, vector);
-        double[] vp = vectorPreferencia(n, mp);
+        double[] v = getPreferenceConsistencyVector(n, vector);
+        return calculateConsistency(n, v);
+    }
 
+    public static double calculateConsistency(int n, double[] consistencyVector) {
         double nMax = 0.0;
         for(int i = 0; i<n; i++) {
-            double foo = 0.0;
-            for(int e = 0; e<n; e++) {
-                foo += mp[i][e] * vp[e];
-            }
-            nMax += foo;
+            nMax += consistencyVector[i];
         }
-
         double CI = (nMax - n) / (n-1);
         double RI = 1.98 * (n-2) / n;
 
         return CI / RI;
+    }
+
+    public static double[] getPreferenceConsistencyVector(int n, double[] preferenceVector) {
+        double[][] mp = matrizPreferencia(n, preferenceVector);
+        double[] vp = vectorPreferencia(n, mp);
+
+        double[] consistencyVector = new double[n];
+        for(int i = 0; i<n; i++) {
+            consistencyVector[i] = 0.0;
+            for(int e = 0; e<n; e++) {
+                consistencyVector[i] += mp[i][e] * vp[e];
+            }
+        }
+        return consistencyVector;
     }
 
     public static double[] translatePreferences(int[] rawPreferences) {

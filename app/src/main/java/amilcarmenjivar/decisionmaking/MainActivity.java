@@ -17,6 +17,7 @@ import android.widget.Toast;
 
 import java.util.List;
 
+import amilcarmenjivar.decisionmaking.data.DataManager;
 import amilcarmenjivar.decisionmaking.dialogs.DialogFileNameFragment;
 import amilcarmenjivar.decisionmaking.dialogs.DialogOpenFileFragment;
 
@@ -39,7 +40,7 @@ public class MainActivity extends ActionBarActivity implements NavigationDrawerF
 
         // Anything needed to be loaded has already been.
 
-        mNavigationItems = InfoCenter.getNavigationItems(this);
+        mNavigationItems = DataManager.getNavigationItems(this);
         setContentView(R.layout.activity_main);
         setupDrawer();
     }
@@ -47,7 +48,7 @@ public class MainActivity extends ActionBarActivity implements NavigationDrawerF
     @Override
     protected void onStop() {
         Log.wtf("DecisionMaker", "Saving temp file");
-        InfoCenter.save(this);
+        DataManager.saveTempFile(this);
         super.onStop();
     }
 
@@ -149,7 +150,7 @@ public class MainActivity extends ActionBarActivity implements NavigationDrawerF
     }
 
     private void refreshDrawer() {
-        mNavigationItems = InfoCenter.getNavigationItems(this);
+        mNavigationItems = DataManager.getNavigationItems(this);
         mDrawerFragment.refreshDrawer();
     }
 
@@ -210,7 +211,7 @@ public class MainActivity extends ActionBarActivity implements NavigationDrawerF
 
         // Load file
         Toast.makeText(this, "Loading: "+fileName, Toast.LENGTH_SHORT).show();
-        if(InfoCenter.importData(fileName)){
+        if(DataManager.importData(fileName)){
 
             // If loading was successful, refresh navigation drawer.
             refreshDrawer();
@@ -225,7 +226,7 @@ public class MainActivity extends ActionBarActivity implements NavigationDrawerF
             try{ // TODO: use string resources
                 if(userInput == null || userInput.equals("")) {
                     Toast.makeText(this, "Enter a valid name.", Toast.LENGTH_SHORT).show();
-                } else if(InfoCenter.exportData(userInput.trim()+".csv")) {
+                } else if(DataManager.exportData(userInput.trim()+".csv")) {
                     Toast.makeText(this, "File saved: " + userInput.trim() + ".csv", Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(this, "Saving Failed!", Toast.LENGTH_SHORT).show();

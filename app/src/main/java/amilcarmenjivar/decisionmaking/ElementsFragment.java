@@ -16,6 +16,8 @@ import com.terlici.dragndroplist.DragNDropListView;
 
 import java.util.List;
 
+import amilcarmenjivar.decisionmaking.data.DataManager;
+
 /**
 * Created by Amilcar Menjivar on 28/04/2015.
 */
@@ -66,33 +68,33 @@ public class ElementsFragment extends Fragment implements AdapterView.OnItemClic
 
     private List<String> elements() {
         if (mElements == 0) {
-            return InfoCenter.getCandidates();
+            return DataManager.getCandidates();
         } else if (mElements == 1) {
-            return InfoCenter.getAttributes();
+            return DataManager.getAttributes();
         } else if (mElements == 2) {
-            return InfoCenter.getProfiles();
+            return DataManager.getProfiles();
         } else {
-            return InfoCenter.getJudges();
+            return DataManager.getJudges();
         }
     }
 
     private boolean tryDelete(int position) {
         if (mElements == 0) {
-            return InfoCenter.removeCandidate(position);
+            return DataManager.removeCandidate(position);
         } else if (mElements == 1) {
-            return InfoCenter.removeAttribute(position);
+            return DataManager.removeAttribute(position);
         } else if (mElements == 2) {
-            return InfoCenter.removeProfile(position);
+            return DataManager.removeProfile(position);
         } else {
-            return InfoCenter.removeJudge(position);
+            return DataManager.removeJudge(position);
         }
     }
 
     private void onListReOrdered() {
         if(mElements == 0) { // Candidates;
-            InfoCenter.getAttributeData().updateElements();
+            DataManager.updateAttributeData();
         } else if(mElements == 1) { // Attributes
-            InfoCenter.getProfileData().updateElements();
+            DataManager.updateProfileData();
         }
     }
 

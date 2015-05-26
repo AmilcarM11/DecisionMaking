@@ -1,9 +1,11 @@
-package amilcarmenjivar.decisionmaking;
+package amilcarmenjivar.decisionmaking.data;
 
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import amilcarmenjivar.decisionmaking.Pair;
 
 /**
  *
@@ -172,6 +174,8 @@ public class Data {
 
     private Map<String, Map<Pair, Map<String, Integer>>> decodeRawData(int[][][] rawData) {
         // Structure: (Criteria:( Pair:(Judge: Integer) ))
+
+        // TODO: Check sizes and throw exceptions!
 
         Map<String, Map<Pair, Map<String, Integer>>> map = new LinkedHashMap<String, Map<Pair, Map<String, Integer>>>();
         Pair.loading = true;

@@ -15,6 +15,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import amilcarmenjivar.decisionmaking.data.DataManager;
+import amilcarmenjivar.decisionmaking.data.Instance;
+import amilcarmenjivar.decisionmaking.data.Result;
+
 /**
  *
  * Created by Amilcar Menjivar on 30/04/2015.
@@ -37,7 +41,7 @@ public class FileIO {
             return new String[] { "Instance 1", "Instance 2", "Instance 3" };
         }
 
-        File directory = new File(Environment.getExternalStorageDirectory(), SAVE_DIRECTORY);
+        File directory = getSaveDirectory();
         File[] files = directory.listFiles(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String filename) {
@@ -76,7 +80,7 @@ public class FileIO {
         return Environment.MEDIA_MOUNTED.equals(state);
     }
 
-    public static InfoCenter.RawData importFromFile(File file) {
+    public static Instance importFromFile(File file) {
         if(file == null || !file.exists()) {
             return null;
         }
@@ -106,8 +110,7 @@ public class FileIO {
             int[][][] profileInfo = readRawDataMatrices(br, profiles.size(), aPairs, judges.size());
 
                 // Ignore the rest.
-
-            return new InfoCenter.RawData(candidates, attributes, profiles, judges, attributeInfo, profileInfo);
+            return Instance.newInstance(candidates, attributes, profiles, judges, attributeInfo, profileInfo);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -119,13 +122,15 @@ public class FileIO {
         exportResultToFile(null, file);
     }
 
-    public static boolean exportResultToFile(Result result, String fileName) {
-        String root = Environment.getExternalStorageDirectory().toString();
-        File directory = new File(root, SAVE_DIRECTORY);
-        directory.mkdirs();
+    public static boolean exportInstanceToFile(Instance instance, String fileName) {
+        File directory = getSaveDirectory();
         File file = new File(directory, fileName);
-        exportResultToFile(result, file);
-        return file.exists();
+        Result result = instance == null ? null : instance.getResult();
+        if(result != null) {
+            exportResultToFile(result, file);
+            return file.exists();
+        }
+        return false;
     }
 
     // TODO: the table names on the export file should be localized
@@ -134,10 +139,10 @@ public class FileIO {
         BufferedWriter bw;
         try {
             bw = new BufferedWriter(new FileWriter(file));
-            List<String> candidates = InfoCenter.getCandidates();
-            List<String> attributes = InfoCenter.getAttributes();
-            List<String> profiles = InfoCenter.getProfiles();
-            List<String> judges = InfoCenter.getJudges();
+            List<String> candidates = DataManager.getCandidates();
+            List<String> attributes = DataManager.getAttributes();
+            List<String> profiles = DataManager.getProfiles();
+            List<String> judges = DataManager.getJudges();
 
             bw.write(APP_SIGNATURE+"\n");
 
@@ -149,12 +154,12 @@ public class FileIO {
             bw.newLine();
 
             // Write raw comparison data for attributes
-            int[][][] attributeInfo = result == null ? InfoCenter.getAttributesInfo() : result.attributeInfo;
+            int[][][] attributeInfo = result == null ? DataManager.getAttributeData().getRawData() : result.attributeInfo;
             writeRawDataMatrices(bw, attributeInfo);
             bw.newLine();
 
             // Write raw comparison data for profiles
-            int[][][] profileInfo = result == null ? InfoCenter.getProfilesInfo() : result.profileInfo;
+            int[][][] profileInfo = result == null ? DataManager.getProfileData().getRawData() : result.profileInfo;
             writeRawDataMatrices(bw, profileInfo);
             bw.newLine();
 
@@ -366,5 +371,16 @@ public class FileIO {
         }
     }
 
+    public static File getTempFile(Context context) {
+        return new File(context.getFilesDir(), FileIO.TEMP_FILE_NAME);
+    }
 
+    public static File getSaveDirectory() {
+        String root = Environment.getExternalStorageDirectory().toString();
+        File directory = new File(root, SAVE_DIRECTORY);
+        if(!directory.exists()) {
+            directory.mkdirs();
+        }
+        return directory;
+    }
 }

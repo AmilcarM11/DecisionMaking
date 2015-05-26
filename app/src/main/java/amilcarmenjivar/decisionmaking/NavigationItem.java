@@ -11,6 +11,8 @@ public class NavigationItem {
     public final String text;
     public final int childID;
 
+    // TODO: also accept stringResId
+
     public NavigationItem(Type type, String text) {
         this(type, text, -1);
         type.sectionTitle = text;

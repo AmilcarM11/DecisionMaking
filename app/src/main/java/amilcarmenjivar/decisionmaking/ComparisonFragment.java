@@ -11,6 +11,8 @@ import android.widget.TableLayout;
 import java.util.ArrayList;
 import java.util.List;
 
+import amilcarmenjivar.decisionmaking.data.Data;
+import amilcarmenjivar.decisionmaking.data.DataManager;
 import amilcarmenjivar.decisionmaking.views.ComboSeekBar;
 import amilcarmenjivar.decisionmaking.views.MyTextView;
 
@@ -42,9 +44,9 @@ public class ComparisonFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_comparison, container, false);
         TableLayout table = (TableLayout) rootView.findViewById(R.id.comparingTable);
 
-        Data data = mElements == 0 ? InfoCenter.getAttributeData() : InfoCenter.getProfileData();
-        String criteria = (mElements == 0 ? InfoCenter.getAttributes() : InfoCenter.getProfiles()).get(mCriteria);
-        String judge = InfoCenter.getJudges().get(mJudge);
+        Data data = mElements == 0 ? DataManager.getAttributeData() : DataManager.getProfileData();
+        String criteria = (mElements == 0 ? DataManager.getAttributes() : DataManager.getProfiles()).get(mCriteria);
+        String judge = DataManager.getJudges().get(mJudge);
 
         // Create the table rows
         mBars = new ArrayList<ComboSeekBar>();
@@ -91,7 +93,7 @@ public class ComparisonFragment extends Fragment {
         }
 
         // Update the values on the seek bars
-        Data data = mElements == 0 ? InfoCenter.getAttributeData() : InfoCenter.getProfileData();
+        Data data = mElements == 0 ? DataManager.getAttributeData() : DataManager.getProfileData();
         int[][][] rawData = data.getRawData();
         for(int i=0; i< mBars.size(); i++) {
             mBars.get(i).setInfo(i, rawData[mCriteria][i][mJudge]);
@@ -135,10 +137,10 @@ public class ComparisonFragment extends Fragment {
 
     private void writeData(int pair, int value) {
         if(mElements==0) {
-            InfoCenter.writeAttributesInfo(mCriteria, pair, mJudge, value);
+            DataManager.writeAttributesInfo(mCriteria, pair, mJudge, value);
             mListener.onComparisonChanged(mCriteria, mJudge);
         } else {
-            InfoCenter.writePreferencesInfo(mCriteria, pair, mJudge, value);
+            DataManager.writeProfilesInfo(mCriteria, pair, mJudge, value);
             mListener.onComparisonChanged(mCriteria, mJudge);
         }
     }

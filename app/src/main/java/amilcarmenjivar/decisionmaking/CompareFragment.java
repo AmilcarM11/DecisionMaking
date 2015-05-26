@@ -19,11 +19,10 @@ import android.widget.Toast;
 import java.text.DecimalFormat;
 import java.util.List;
 
+import amilcarmenjivar.decisionmaking.data.DataManager;
 import amilcarmenjivar.decisionmaking.views.PagerTabStrip;
 
-import static amilcarmenjivar.decisionmaking.DecisionAlgorithm.getPreferenceConsistency;
 import static amilcarmenjivar.decisionmaking.DecisionAlgorithm.isConsistencyAcceptable;
-import static amilcarmenjivar.decisionmaking.DecisionAlgorithm.translatePreference;
 
 /**
  *
@@ -84,7 +83,7 @@ public class CompareFragment extends Fragment implements ActionBar.OnNavigationL
         }
 
         // Spinner for judges
-        List<String> judges = InfoCenter.getJudges();
+        List<String> judges = DataManager.getJudges();
         if(judges.size() > 0) {
             final ActionBar actionBar = getMyActivity().getSupportActionBar();
             actionBar.setDisplayShowTitleEnabled(true);
@@ -92,7 +91,7 @@ public class CompareFragment extends Fragment implements ActionBar.OnNavigationL
                     actionBar.getThemedContext(),
                     android.R.layout.simple_list_item_1,
                     android.R.id.text1,
-                    InfoCenter.getJudges());
+                    DataManager.getJudges());
 
             actionBar.setListNavigationCallbacks(mAdapter, this);
         }
@@ -165,29 +164,15 @@ public class CompareFragment extends Fragment implements ActionBar.OnNavigationL
     }
 
 
-    // Checks consistency per criteria and judge
+    // Checks consistency per criteria and judge (judge=-1 means all judges)
     private double getConsistency(int criteria, int judge) {
-        int n = mElements == 0 ? InfoCenter.getCandidates().size() : InfoCenter.getAttributes().size();
-        Data data = mElements == 0 ? InfoCenter.getAttributeData() : InfoCenter.getProfileData();
-        int[][][] rawData = data.getRawData();
-        int judges = InfoCenter.getJudges().size();
-
-        double[] vector = new double[rawData[criteria].length];
-
-        if(judge == -1) { // Check overall consistency
-            for(int i = 0; i<vector.length; i++) {
-                double score = 1.0;
-                for(int j = 0; j < judges; j++) {
-                    score *= translatePreference(rawData[criteria][i][j]);
-                }
-                vector[i] = Math.pow(score, 1.0/judges);
-            }
-        } else { // Check per-judge consistency
-            for(int i = 0; i<vector.length; i++) {
-                vector[i] = translatePreference(rawData[criteria][i][judge]);
-            }
+        double consistency;
+        if( mElements == 0 ){
+            consistency = DataManager.getLoadedInstance().getAttributeConsistency(criteria, judge);
+        } else {
+            consistency = DataManager.getLoadedInstance().getProfileConsistency(criteria, judge);
         }
-        return getPreferenceConsistency(n, vector);
+        return consistency;
     }
 
     public void setPage(int page) {
@@ -214,9 +199,9 @@ public class CompareFragment extends Fragment implements ActionBar.OnNavigationL
 
     private List<String> elements() {
         if(mElements == 0)
-            return InfoCenter.getAttributes();
+            return DataManager.getAttributes();
         else
-            return InfoCenter.getProfiles();
+            return DataManager.getProfiles();
     }
 
     public static CompareFragment newInstance(int index, int elements, int page) {

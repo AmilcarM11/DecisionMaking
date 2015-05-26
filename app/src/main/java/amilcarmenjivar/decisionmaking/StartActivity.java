@@ -1,12 +1,12 @@
 package amilcarmenjivar.decisionmaking;
 
 import android.content.Intent;
-import android.support.v4.app.NavUtils;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 
+import amilcarmenjivar.decisionmaking.data.DataManager;
 import amilcarmenjivar.decisionmaking.dialogs.DialogNewOrOpenFragment;
 import amilcarmenjivar.decisionmaking.dialogs.DialogOpenFileFragment;
 
@@ -24,7 +24,7 @@ public class StartActivity extends ActionBarActivity implements DialogNewOrOpenF
 
         if (FileIO.isTempFileFound(this)) {
             Log.wtf("DecisionMaker", "Loading data from temp file...");
-            if(InfoCenter.reload(this)) {
+            if(DataManager.loadTempFile(this)) {
                 Log.wtf("DecisionMaker", "Loading successful!");
             } else {
                 Log.wtf("DecisionMaker", "Loading failed. Using test values instead.");
@@ -61,7 +61,7 @@ public class StartActivity extends ActionBarActivity implements DialogNewOrOpenF
         }
         // Load file
         Toast.makeText(this, "Loading: " + fileName, Toast.LENGTH_SHORT).show();
-        if(InfoCenter.importData(fileName)) {
+        if(DataManager.importData(fileName)) {
             Log.wtf("DecisionMaker", "Loaded file successfully!");
             startMainActivity();
         } else {

@@ -1,4 +1,4 @@
-package amilcarmenjivar.decisionmaking;
+package amilcarmenjivar.decisionmaking.data;
 
 /**
  *

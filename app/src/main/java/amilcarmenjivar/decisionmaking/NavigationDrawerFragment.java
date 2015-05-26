@@ -1,6 +1,5 @@
 package amilcarmenjivar.decisionmaking;
 
-import android.content.Context;
 import android.support.v7.app.ActionBarActivity;
 import android.app.Activity;
 import android.support.v7.app.ActionBar;
@@ -21,12 +20,11 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.TextView;
 
 import java.util.List;
+
+import amilcarmenjivar.decisionmaking.data.DataManager;
 
 /**
  * Fragment used for managing interactions for and presentation of a navigation drawer.
@@ -89,8 +87,8 @@ public class NavigationDrawerFragment extends Fragment {
         }
 
         // TODO: do i need this?
-        attributes = InfoCenter.getAttributes().size();
-        profiles = InfoCenter.getProfiles().size();
+        attributes = DataManager.getAttributes().size();
+        profiles = DataManager.getProfiles().size();
 
         // Select either the default item (0) or the last selected item.
         selectItem(mCurrentSelectedPosition);
@@ -152,18 +150,8 @@ public class NavigationDrawerFragment extends Fragment {
         Log.wtf("DecisionMaker", "Setting-up Navigation Drawer");
 
         mDrawerListView.setAdapter(new NavDrawerAdapter(getActivity(), getMyActivity().getNavDrawerItems()));
-
-//        mAttributesListView.setAdapter(new DrawerAdapter(getActivity(), InfoCenter.getAttributes()));
-//        mProfilesListView.setAdapter(new DrawerAdapter(getActivity(), InfoCenter.getProfiles()));
-
         // Select position
         mDrawerListView.setItemChecked(mCurrentSelectedPosition, true);
-
-//        if(mCurrentSelectedPosition < attributes) {
-//            mAttributesListView.setItemChecked(mCurrentSelectedPosition, true);
-//        } else if(mCurrentSelectedPosition - attributes < profiles){
-//            mProfilesListView.setItemChecked(mCurrentSelectedPosition - attributes, true);
-//        }
 
         // set a custom shadow that overlays the main content when the drawer opens
         mDrawerLayout.setDrawerShadow(R.drawable.drawer_shadow, GravityCompat.START);
@@ -268,40 +256,6 @@ public class NavigationDrawerFragment extends Fragment {
     public boolean isDrawerOpen() {
         return mDrawerLayout != null && mDrawerLayout.isDrawerOpen(mFragmentContainerView);
     }
-//
-//    private int lastAttributeSelected = -1;
-//    private int lastProfileSelected = -1;
-//
-//    private void selectItem(int type, int position) {
-//        // TODO: setItemChecked. Move to main selectItem!
-//
-//        if(type == 0){
-////            mAttributesListView.setItemChecked(position, true);
-////            if(lastProfileSelected != -1)
-////                mProfilesListView.setItemChecked(lastProfileSelected, false);
-////            lastAttributeSelected = position;
-//            selectItem(position);
-//
-//        } else if(type == 1) {
-////            mProfilesListView.setItemChecked(position, true);
-////            if(lastAttributeSelected != -1)
-////                mAttributesListView.setItemChecked(lastAttributeSelected, false);
-////            lastProfileSelected = position;
-//            selectItem(position + attributes);
-//
-//        } else {
-//            // Results
-//
-////            if(lastAttributeSelected != -1)
-////                mAttributesListView.setItemChecked(lastAttributeSelected, false);
-////            if(lastProfileSelected != -1)
-////                mProfilesListView.setItemChecked(lastProfileSelected, false);
-////            lastAttributeSelected = -1;
-////            lastProfileSelected = -1;
-//
-//            selectItem(-1);
-//        }
-//    }
 
     public void selectItem(int position) {
         // Shortcut for opening the results section
@@ -328,9 +282,6 @@ public class NavigationDrawerFragment extends Fragment {
 
         // Re-setting the adapter causes a full redraw of the drawer.
         mDrawerListView.setAdapter(new NavDrawerAdapter(getActivity(), navItems));
-
-//        mAttributesListView.setAdapter(new DrawerAdapter(getActivity(), InfoCenter.getAttributes()));
-//        mProfilesListView.setAdapter(new DrawerAdapter(getActivity(), InfoCenter.getProfiles()));
 
         // TODO: pass warnings to the adapters.
 

@@ -59,6 +59,7 @@ public class DialogFileNameFragment extends DialogFragment {
 
         Bundle args = new Bundle();
         fragment.setArguments(args);
+        // TODO: suggested file name
         return fragment;
     }
 

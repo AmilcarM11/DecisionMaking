@@ -11,7 +11,8 @@ import android.view.ViewGroup;
 
 import java.util.List;
 
-import amilcarmenjivar.decisionmaking.views.PagerTabStrip;
+import amilcarmenjivar.decisionmaking.data.DataManager;
+import amilcarmenjivar.decisionmaking.data.Result;
 
 
 public class ResultsFragment extends Fragment implements ResultProvider {
@@ -39,7 +40,7 @@ public class ResultsFragment extends Fragment implements ResultProvider {
         if(savedInstanceState != null) {
             mCurrentPage = savedInstanceState.getInt(ARG_CURRENT_PAGE);
         }
-        mResult = DecisionAlgorithm.getResults();
+        mResult = DataManager.getLoadedInstance().getResult();
     }
 
     @Override
@@ -76,13 +77,13 @@ public class ResultsFragment extends Fragment implements ResultProvider {
         switch(Pages.values()[page]) {
             case CANDIDATES_PER_PROFILE:
             case ATTRIBUTES_PER_PROFILE:
-                return InfoCenter.getProfiles();
+                return DataManager.getProfiles();
             case CANDIDATES_PER_ATTRIBUTE:
             case PROFILES_PER_ATTRIBUTE:
-                return InfoCenter.getAttributes();
+                return DataManager.getAttributes();
             case ATTRIBUTES_PER_CANDIDATE:
             case PROFILES_PER_CANDIDATE:
-                return InfoCenter.getCandidates();
+                return DataManager.getCandidates();
         }
         return null;
     }
@@ -92,13 +93,13 @@ public class ResultsFragment extends Fragment implements ResultProvider {
         switch(Pages.values()[page]) {
             case CANDIDATES_PER_PROFILE:
             case CANDIDATES_PER_ATTRIBUTE:
-                return InfoCenter.getCandidates();
+                return DataManager.getCandidates();
             case ATTRIBUTES_PER_PROFILE:
             case ATTRIBUTES_PER_CANDIDATE:
-                return InfoCenter.getAttributes();
+                return DataManager.getAttributes();
             case PROFILES_PER_CANDIDATE:
             case PROFILES_PER_ATTRIBUTE:
-                return InfoCenter.getProfiles();
+                return DataManager.getProfiles();
         }
         return null;
     }

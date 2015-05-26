@@ -12,6 +12,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import amilcarmenjivar.decisionmaking.data.DataManager;
 import amilcarmenjivar.decisionmaking.dialogs.DialogAddFragment;
 
 public class SetupActivity extends ActionBarActivity implements DialogAddFragment.OnDialogResultListener {
@@ -80,17 +81,17 @@ public class SetupActivity extends ActionBarActivity implements DialogAddFragmen
         if(accepted && userInput != null && !userInput.equals("")) {
             switch (mCurrentPage) {
                 case 0:
-                    InfoCenter.addCandidate(userInput);
+                    DataManager.addCandidate(userInput);
                     break;
                 case 1:
-                    InfoCenter.addAttribute(userInput);
+                    DataManager.addAttribute(userInput);
                     break;
                 case 2:
-                    InfoCenter.addProfile(userInput);
+                    DataManager.addProfile(userInput);
                     break;
                 case 3:
                 default:
-                    InfoCenter.addJudge(userInput);
+                    DataManager.addJudge(userInput);
             }
             mPageAdapter.refresh();
         }
@@ -107,10 +108,10 @@ public class SetupActivity extends ActionBarActivity implements DialogAddFragmen
     private boolean checkDataIntegrity() {
         boolean result = true;
 
-        int judges = InfoCenter.getJudges().size();
-        int profiles = InfoCenter.getProfiles().size();
-        int attributes = InfoCenter.getAttributes().size();
-        int candidates = InfoCenter.getCandidates().size();
+        int judges = DataManager.getJudges().size();
+        int profiles = DataManager.getProfiles().size();
+        int attributes = DataManager.getAttributes().size();
+        int candidates = DataManager.getCandidates().size();
 
         if(candidates <2) {
             result = false;
@@ -135,11 +136,6 @@ public class SetupActivity extends ActionBarActivity implements DialogAddFragmen
             String message = String.format(getString(R.string.insufficient_elements),
                     getString(R.string.judges));
             Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
-        }
-
-        // Notify that we <potentially> modified data.
-        if(result == true){
-            InfoCenter.onDataModified();
         }
 
         return result;
