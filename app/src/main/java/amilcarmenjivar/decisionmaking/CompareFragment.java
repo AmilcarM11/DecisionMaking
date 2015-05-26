@@ -46,7 +46,7 @@ public class CompareFragment extends Fragment implements ActionBar.OnNavigationL
     private boolean[] inconsistentCriteria = new boolean[0];
     private double[] consistencies = new double[0];
 
-    DecimalFormat formatter = new DecimalFormat("0.000");
+    DecimalFormat formatter = new DecimalFormat("0.00%");
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -249,8 +249,10 @@ public class CompareFragment extends Fragment implements ActionBar.OnNavigationL
             mCurrentPage = i;
 
             // Toast consistency
-            double consistency = consistencies[mCurrentPage];
-            Toast.makeText(getActivity(), "Consistency: "+ formatter.format(consistency), Toast.LENGTH_SHORT).show();
+            if(inconsistentCriteria[mCurrentPage]) {
+                double consistency = consistencies[mCurrentPage];
+                Toast.makeText(getActivity(), "Inconsistency: "+ formatter.format(consistency), Toast.LENGTH_SHORT).show();
+            }
 
             refresh();
         }
