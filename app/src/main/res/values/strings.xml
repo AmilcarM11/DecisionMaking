@@ -57,5 +57,7 @@
     <string name="profiles_per_candidate">Profiles per Candidate</string>
     <string name="new_or_load_message">Save file not found. What to do?</string>
     <string name="title_activity_start">StartActivity</string>
+    <string name="load_instance">Load Instance</string>
+    <string name="new_instance">New Instance</string>
 
 </resources>

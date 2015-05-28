@@ -1,5 +1,7 @@
 package amilcarmenjivar.decisionmaking;
 
+import android.content.Context;
+import android.os.AsyncTask;
 import android.support.v7.app.ActionBarActivity;
 import android.app.Activity;
 import android.support.v7.app.ActionBar;
@@ -20,8 +22,11 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.TextView;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import amilcarmenjivar.decisionmaking.data.DataManager;
@@ -56,17 +61,20 @@ public class NavigationDrawerFragment extends Fragment {
 
     private DrawerLayout mDrawerLayout;
 
-    private int attributes;
-    private int profiles;
+    private ListView mDrawerListView;
+    private ListView mInstanceListView;
+    private InstanceListAdapter mInstanceListAdapter;
 
-    ListView mDrawerListView;
-
-    ListView mAttributesListView;
-    ListView mProfilesListView;
+    private TextView mCandidatesTextView;
+    private TextView mAttributesTextView;
+    private TextView mProfilesTextView;
+    private TextView mJudgesTextView;
+    private ImageView mDrawerIndicatorIcon;
 
     private View mFragmentContainerView;
 
     private int mCurrentSelectedPosition = 0;
+    private boolean mAlternativeLayoutShown = false;
     private boolean mFromSavedInstanceState;
     private boolean mUserLearnedDrawer;
 
@@ -86,10 +94,6 @@ public class NavigationDrawerFragment extends Fragment {
             mFromSavedInstanceState = true;
         }
 
-        // TODO: do i need this?
-        attributes = DataManager.getAttributes().size();
-        profiles = DataManager.getProfiles().size();
-
         // Select either the default item (0) or the last selected item.
         selectItem(mCurrentSelectedPosition);
     }
@@ -105,6 +109,12 @@ public class NavigationDrawerFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_navigation_drawer, container, false);
 
+        // Header views
+        mCandidatesTextView = (TextView) root.findViewById(R.id.candidatesText);
+        mAttributesTextView = (TextView) root.findViewById(R.id.attributesText);
+        mProfilesTextView = (TextView) root.findViewById(R.id.profilesText);
+        mJudgesTextView = (TextView) root.findViewById(R.id.judgesText);
+        mDrawerIndicatorIcon = (ImageView) root.findViewById(R.id.drawerLayoutIndicator);
 
         mDrawerListView = (ListView) root.findViewById(R.id.drawer_listView);
         mDrawerListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -114,40 +124,28 @@ public class NavigationDrawerFragment extends Fragment {
             }
         });
 
-
-//        mAttributesListView = (ListView) root.findViewById(R.id.attributes_list);
-//        mAttributesListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-//            @Override
-//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-//                selectItem(0, position);
-//            }
-//        });
-//        mProfilesListView = (ListView) root.findViewById(R.id.profiles_list);
-//        mProfilesListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-//            @Override
-//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-//                selectItem(1, position);
-//            }
-//        });
-//        TextView mResultsView = (TextView) root.findViewById(R.id.drawer_resultsTextView);
-//        mResultsView.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                selectItem(-1);
-//            }
-//        });
+        mInstanceListView = (ListView) root.findViewById(R.id.alternative_listView);
+        mInstanceListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                if (mCallbacks != null) {
+                    NavigationItem item = (NavigationItem) mInstanceListView.getAdapter().getItem(position);
+                    mCallbacks.onAlternateItemSelected(position, item);
+                }
+            }
+        });
 
         return root;
     }
-
-    boolean isLeftListEnabled = true;
-    boolean isRightListEnabled = true;
 
     public void setUp(int fragmentId, DrawerLayout drawerLayout, final Toolbar toolbar) {
         mFragmentContainerView = getActivity().findViewById(fragmentId);
         mDrawerLayout = drawerLayout;
 
         Log.wtf("DecisionMaker", "Setting-up Navigation Drawer");
+
+        mInstanceListAdapter = new InstanceListAdapter(getActivity());
+        mInstanceListView.setAdapter(mInstanceListAdapter);
 
         mDrawerListView.setAdapter(new NavDrawerAdapter(getActivity(), getMyActivity().getNavDrawerItems()));
         // Select position
@@ -196,8 +194,9 @@ public class NavigationDrawerFragment extends Fragment {
             mDrawerLayout.openDrawer(mFragmentContainerView);
         }
 
-
         mDrawerLayout.setDrawerListener(mDrawerToggle);
+
+        updateHeader();
 
         // Defer code dependent on restoration of previous instance state.
         mDrawerLayout.post(new Runnable() {
@@ -277,19 +276,56 @@ public class NavigationDrawerFragment extends Fragment {
         }
     }
 
+    private static void replaceViews(final View collapseView, final View expandView) {
+        collapseView.setVisibility(View.GONE);
+        expandView.setVisibility(View.VISIBLE);
+    }
+
+    public void alternateLayout() {
+        if(mAlternativeLayoutShown) {
+            replaceViews(mInstanceListView, mDrawerListView);
+            mDrawerIndicatorIcon.setImageResource(R.drawable.ic_keyboard_arrow_down_white_18dp);
+        } else {
+            replaceViews(mDrawerListView, mInstanceListView);
+            mInstanceListAdapter.update();
+            mDrawerIndicatorIcon.setImageResource(R.drawable.ic_keyboard_arrow_up_white_18dp);
+        }
+
+        mAlternativeLayoutShown = !mAlternativeLayoutShown;
+    }
+
+    private void updateHeader() {
+        String candidates = "-";
+        String attributes = "-";
+        String profiles = "-";
+        String judges = "-";
+        if(DataManager.getIsInstanceLoaded()) {
+            candidates = DataManager.getCandidates().size() + "";
+            attributes = DataManager.getAttributes().size() + "";
+            profiles = DataManager.getProfiles().size() + "";
+            judges = DataManager.getJudges().size() + "";
+        }
+
+        mCandidatesTextView.setText(candidates);
+        mAttributesTextView.setText(attributes);
+        mProfilesTextView.setText(profiles);
+        mJudgesTextView.setText(judges);
+    }
+
     public void refreshDrawer() {
         List<NavigationItem> navItems = getMyActivity().getNavDrawerItems();
 
+        updateHeader();
+
         // Re-setting the adapter causes a full redraw of the drawer.
         mDrawerListView.setAdapter(new NavDrawerAdapter(getActivity(), navItems));
-
-        // TODO: pass warnings to the adapters.
 
         // Open the results fragment, and keep the drawer open.
         selectItem(navItems.size() - 1);
 
         mDrawerLayout.openDrawer(mFragmentContainerView);
     }
+
     /**
      * Per the navigation drawer design guidelines, updates the action bar to show the global app
      * 'context', rather than just what's in the current screen.
@@ -309,41 +345,72 @@ public class NavigationDrawerFragment extends Fragment {
         return (MainActivity) getActivity();
     }
 
-
     public static interface NavigationDrawerCallbacks {
         /**
          * Called when an item in the navigation drawer is selected.
          */
         void onNavigationDrawerItemSelected(int position);
+
+        void onAlternateItemSelected(int position, NavigationItem item);
+
     }
 
-//    private class DrawerAdapter extends ArrayAdapter<String> {
-//
-//        private boolean[] warnings;
-//
-//        public DrawerAdapter(Context context, List<String> objects) {
-//            super(context, R.layout.item_drawer_item, R.id.itemText, objects);
-//            warnings = new boolean[objects == null ? 0 : objects.size()];
-//        }
-//
-//        public View getView(int position, View convertView, ViewGroup parent) {
-//            View view = super.getView(position, convertView, parent);
-//
-//            ImageView warningIcon = (ImageView) view.findViewById(R.id.warningBtn);
-//            if(warnings[position]) {
-//                warningIcon.setVisibility(View.VISIBLE);
-//            } else {
-//                warningIcon.setVisibility(View.INVISIBLE);
-//            }
-//            return view;
-//        }
-//
-//        public void setWarnings(boolean[] warnings) {
-//            if(warnings == null || warnings.length != this.warnings.length){
-//                throw new IllegalArgumentException("Warnings array must match correct size");
-//            }
-//            this.warnings = warnings;
-//        }
-//    }
+    private class InstanceListAdapter extends NavDrawerAdapter {
+
+        public InstanceListAdapter(Context context) {
+            super(context, new ArrayList<NavigationItem>());
+            update();
+        }
+
+        public void update() {
+            new PopulateItemsTask().execute();
+        }
+
+        @Override
+        public boolean getShouldCheckWarnings() {
+            return false;
+        }
+
+
+        private String getString(int stringRes) {
+            return getContext().getString(stringRes);
+        }
+
+        private class PopulateItemsTask extends AsyncTask<Void, Void, String[]> {
+
+            @Override
+            protected void onPostExecute(String[] items) {
+                int i = 0;
+                for(String item : items) {
+                    if(item != null && !item.equals("")) {
+                        add(NavigationItem.newSectionItem(NavigationItem.Type.INSTANCE, item, i++));
+                    }
+                }
+            }
+
+            @Override
+            protected void onPreExecute() {
+                clear();
+                // TODO: icons for each item.
+                // Save
+                add(NavigationItem.newItem(getString(R.string.action_edit), R.drawable.ic_assessment_grey600_24dp));
+                // Edit
+                add(NavigationItem.newItem(getString(R.string.action_save), R.drawable.ic_assessment_grey600_24dp));
+                // New
+                add(NavigationItem.newItem(getString(R.string.new_instance), R.drawable.ic_assessment_grey600_24dp));
+
+                // title: Load Instance
+                add(NavigationItem.newSection(NavigationItem.Type.INSTANCE, getString(R.string.load_instance)));
+            }
+
+            @Override
+            protected String[] doInBackground(Void... params) {
+                // everything in here gets executed in a separate thread
+                return FileIO.listFiles();
+            }
+
+        }
+
+    }
 
 }

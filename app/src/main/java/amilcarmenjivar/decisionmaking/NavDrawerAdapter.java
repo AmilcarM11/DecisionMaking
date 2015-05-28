@@ -10,6 +10,8 @@ import android.widget.TextView;
 
 import java.util.List;
 
+import amilcarmenjivar.decisionmaking.data.DataManager;
+
 /**
  *
  * Created by Amilcar on 09 May/15.
@@ -26,6 +28,7 @@ public class NavDrawerAdapter extends ArrayAdapter<NavigationItem> {
     private static final int[] layouts = { LAYOUT_SECTION, LAYOUT_SECTION_TITLE, LAYOUT_SECTION_CHILD };
 
     private static final int LAYOUT_TEXT_VIEW_ID = R.id.itemText;
+    private static final int LAYOUT_ICON_VIEW_ID = R.id.itemIcon;
 
     private static final int TYPE_SECTION = 0;
     private static final int TYPE_SECTION_TITLE = 1;
@@ -35,13 +38,29 @@ public class NavDrawerAdapter extends ArrayAdapter<NavigationItem> {
         super(context, LAYOUT_SECTION_CHILD, LAYOUT_TEXT_VIEW_ID, objects);
         warnings = new boolean[objects == null ? 0 : objects.size()];
         inflater = LayoutInflater.from(context);
+        updateWarnings();
     }
 
-    public void setWarnings(boolean[] warnings) {
-        if (warnings == null || warnings.length != this.warnings.length) {
-            throw new IllegalArgumentException("Warnings array must match correct size");
+    public void updateWarnings() {
+        this.warnings = new boolean[getCount()];
+        if(getShouldCheckWarnings() && DataManager.getIsInstanceLoaded()) {
+            for(int i = 0; i < warnings.length; i++) {
+                NavigationItem item = getItem(i);
+                if(item.childID != -1) {
+                    double consistency;
+                    if(item.type == NavigationItem.Type.ATTRIBUTE) {
+                        consistency = DataManager.getLoadedInstance().getAttributeConsistency(item.childID, -1);
+                    } else {
+                        consistency = DataManager.getLoadedInstance().getProfileConsistency(item.childID, -1);
+                    }
+                    warnings[i] = !DecisionAlgorithm.isConsistencyAcceptable(consistency);
+                }
+            }
         }
-        this.warnings = warnings;
+    }
+
+    protected boolean getShouldCheckWarnings(){
+        return true;
     }
 
     @Override
@@ -78,12 +97,15 @@ public class NavDrawerAdapter extends ArrayAdapter<NavigationItem> {
             convertView = inflater.inflate(layout, parent, false);
 
             // Find views
-            holder.textView = (TextView) convertView.findViewById(R.id.itemText);
+            holder.textView = (TextView) convertView.findViewById(LAYOUT_TEXT_VIEW_ID);
             if(viewType == TYPE_SECTION_CHILD) {
                 holder.warningIcon = (ImageView) convertView.findViewById(R.id.warningBtn);
             }
             if(viewType == TYPE_SECTION_TITLE || viewType == TYPE_SECTION){
                 holder.sectionDivider = convertView.findViewById(R.id.section_divider);
+            }
+            if(viewType == TYPE_SECTION) {
+                holder.mainIcon = (ImageView) convertView.findViewById(LAYOUT_ICON_VIEW_ID);
             }
 
             convertView.setTag(holder);
@@ -94,9 +116,19 @@ public class NavDrawerAdapter extends ArrayAdapter<NavigationItem> {
         // Set Text
         holder.textView.setText( item.getText() );
 
+        // Set the main icon
+        if(viewType == TYPE_SECTION) {
+            int icon = item.getIconRes();
+            if(icon != -1 && holder.mainIcon != null) {
+                holder.mainIcon.setImageResource(icon);
+            }
+        }
+
         // Set the warning icon visible when corresponding
-        if(viewType == TYPE_SECTION_CHILD && holder.warningIcon != null) {
-            holder.warningIcon.setVisibility( warnings[position] ? View.VISIBLE : View.INVISIBLE );
+        if(getShouldCheckWarnings() && viewType == TYPE_SECTION_CHILD && holder.warningIcon != null) {
+            if(position < warnings.length) {
+                holder.warningIcon.setVisibility( warnings[position] ? View.VISIBLE : View.INVISIBLE );
+            }
         }
 
         return convertView;
@@ -106,6 +138,7 @@ public class NavDrawerAdapter extends ArrayAdapter<NavigationItem> {
         TextView textView = null;
         ImageView warningIcon = null;
         View sectionDivider = null;
+        ImageView mainIcon = null;
     }
 
 }

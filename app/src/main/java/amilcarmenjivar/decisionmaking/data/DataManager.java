@@ -120,12 +120,16 @@ public class DataManager {
 
     public static boolean loadTempFile(Context context) {
         File file = FileIO.getTempFile(context);
-        try{
-            instance = FileIO.importFromFile(file);
-            return true;
+        try {
+            Instance instance = FileIO.importFromFile(file);
+            if(instance != null) {
+                setLoadedInstance(instance);
+                return true;
+            }
+            return false;
         }catch(Exception e) {
             Log.wtf("MyApp", "Problems reloading. ", e);
-            instance = Instance.createTestInstance();
+            setLoadedInstance(Instance.createTestInstance());
             return false;
         }
     }
@@ -136,7 +140,7 @@ public class DataManager {
         File file = new File(directory, fileName+".csv");
         Instance loadedInstance = FileIO.importFromFile(file);
         if(loadedInstance != null) {
-            instance = loadedInstance;
+            setLoadedInstance(loadedInstance);
             return true;
         }
         return false;
@@ -158,20 +162,20 @@ public class DataManager {
         Resources resources = context.getResources();
 
         // Add all attributes
-        list.add(new NavigationItem(NavigationItem.Type.ATTRIBUTE, resources.getString(R.string.attributes)));
+        list.add(NavigationItem.newSection(NavigationItem.Type.ATTRIBUTE, resources.getString(R.string.attributes)));
         for (int i = 0; i <attributes.size(); i++) {
-            list.add(new NavigationItem(NavigationItem.Type.ATTRIBUTE, attributes.get(i), i));
+            list.add(NavigationItem.newSectionItem(NavigationItem.Type.ATTRIBUTE, attributes.get(i), i));
         }
 
         // Add all profiles
-        list.add(new NavigationItem(NavigationItem.Type.PROFILE, resources.getString(R.string.profiles)));
+        list.add(NavigationItem.newSection(NavigationItem.Type.PROFILE, resources.getString(R.string.profiles)));
         for (int i = 0; i <profiles.size(); i++) {
-            list.add(new NavigationItem(NavigationItem.Type.PROFILE, profiles.get(i), i));
+            list.add(NavigationItem.newSectionItem(NavigationItem.Type.PROFILE, profiles.get(i), i));
         }
 
         // Add other sections
         // Results
-        list.add(new NavigationItem(NavigationItem.Type.OTHER, resources.getString(R.string.results)));
+        list.add(NavigationItem.newItem(resources.getString(R.string.results), R.drawable.ic_assessment_grey600_24dp));
 
         return list;
     }

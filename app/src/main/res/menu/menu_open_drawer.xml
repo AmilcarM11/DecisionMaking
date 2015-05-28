@@ -1,19 +1,4 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <item android:id="@+id/action_edit"
-        android:icon="@drawable/ic_create_white_48dp"
-        android:title="@string/action_edit_instance"
-        app:showAsAction="ifRoom" />
-
-    <item android:id="@+id/action_save"
-        android:icon="@drawable/ic_save_white_48dp"
-        android:title="@string/action_save"
-        app:showAsAction="ifRoom" />
-
-    <item android:id="@+id/action_open"
-        android:icon="@drawable/ic_folder_open_white_48dp"
-        android:title="@string/action_open_instance"
-        app:showAsAction="ifRoom" />
-
 </menu>

@@ -19,6 +19,8 @@
         android:layout_marginLeft="32dp"
         android:layout_marginStart="32dp"
         style="@style/DrawerItemText"
+        android:ellipsize="end"
+        android:singleLine="true"
         android:text="Attribute 1"
         android:id="@+id/itemText"/>
 

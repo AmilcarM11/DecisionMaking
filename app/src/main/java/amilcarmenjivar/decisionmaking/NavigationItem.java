@@ -10,18 +10,28 @@ public class NavigationItem {
     public final Type type;
     public final String text;
     public final int childID;
+    public final int iconRes;
 
     // TODO: also accept stringResId
 
-    public NavigationItem(Type type, String text) {
-        this(type, text, -1);
-        type.sectionTitle = text;
-    }
-
-    public NavigationItem(Type type, String text, int childID) {
+    protected NavigationItem(Type type, String text, int childID, int iconRes) {
         this.type = type;
         this.text = text;
         this.childID = childID;
+        this.iconRes = iconRes;
+    }
+
+    public static NavigationItem newItem(String text, int iconRes) {
+        return new NavigationItem(Type.OTHER, text, -1, iconRes);
+    }
+
+    public static NavigationItem newSection(Type type, String title) {
+        type.sectionTitle = title;
+        return new NavigationItem(type, title, -1, -1);
+    }
+
+    public static NavigationItem newSectionItem(Type type, String text, int childID) {
+        return new NavigationItem(type, text, childID, -1);
     }
 
     public String getText() {
@@ -42,8 +52,12 @@ public class NavigationItem {
         }
     }
 
+    public int getIconRes() {
+        return iconRes;
+    }
+
     public enum Type {
-        ATTRIBUTE, PROFILE, OTHER;
+        ATTRIBUTE, PROFILE, INSTANCE, OTHER;
 
         String sectionTitle = "";
     }

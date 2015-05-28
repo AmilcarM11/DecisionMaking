@@ -13,16 +13,16 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.support.v4.widget.DrawerLayout;
+import android.view.View;
 import android.widget.Toast;
 
 import java.util.List;
 
 import amilcarmenjivar.decisionmaking.data.DataManager;
 import amilcarmenjivar.decisionmaking.dialogs.DialogFileNameFragment;
-import amilcarmenjivar.decisionmaking.dialogs.DialogOpenFileFragment;
 
 
-public class MainActivity extends ActionBarActivity implements NavigationDrawerFragment.NavigationDrawerCallbacks, DialogOpenFileFragment.OnFileChosenListener, DialogFileNameFragment.OnDialogResultListener {
+public class MainActivity extends ActionBarActivity implements NavigationDrawerFragment.NavigationDrawerCallbacks, DialogFileNameFragment.OnDialogResultListener {
 
     private int mActiveSection = 0;
 
@@ -69,6 +69,10 @@ public class MainActivity extends ActionBarActivity implements NavigationDrawerF
 
     // ----- Navigation Drawer ----- //
 
+    public void changeDrawerList(View v) {
+        mDrawerFragment.alternateLayout();
+    }
+
     public List<NavigationItem> getNavDrawerItems() {
         return mNavigationItems;
     }
@@ -102,7 +106,6 @@ public class MainActivity extends ActionBarActivity implements NavigationDrawerF
         mActiveSection = position;
         int navItems = getNavDrawerItems().size();
 
-
         if( position < navItems ) {
             NavigationItem item = getNavDrawerItems().get(position);
 
@@ -123,6 +126,40 @@ public class MainActivity extends ActionBarActivity implements NavigationDrawerF
             int page = item.childID > 0 ? item.childID : 0;
 
             replaceFragment(CompareFragment.newInstance(position, type, page));
+        }
+    }
+
+    @Override
+    public void onAlternateItemSelected(int position, NavigationItem item) {
+        if(item == null) {
+            Toast.makeText(this, "I don't even know what to do...", Toast.LENGTH_SHORT).show();
+
+        } else if(item.childID == -1) {
+            if(position == 0) { // Edit
+                Intent anIntent = new Intent(this, SetupActivity.class);
+                startActivity(anIntent);
+            } else if(position == 1) { // Save
+                if(FileIO.isExternalStorageWritable()) {
+                    // TODO: suggest name
+                    DialogFileNameFragment fragment = DialogFileNameFragment.newInstance(this);
+                    fragment.show(getSupportFragmentManager(), "DialogFileNameFragment");
+                } else {
+                    Toast.makeText(this, "External Storage unavailable", Toast.LENGTH_SHORT).show();
+                }
+            } else if(position == 2) { // New
+                // TODO: Make sure it starts with a blank thing
+                Intent anIntent = new Intent(this, SetupActivity.class);
+                startActivity(anIntent);
+            }
+        } else {
+            String fileName = item.text;
+            Toast.makeText(this, "Loading: "+fileName, Toast.LENGTH_SHORT).show();
+            if(DataManager.importData(fileName)){
+                // If loading was successful, refresh navigation drawer.
+                refreshDrawer();
+            } else {
+                Toast.makeText(this, "Loading Failed!", Toast.LENGTH_SHORT).show();
+            }
         }
     }
 
@@ -177,47 +214,7 @@ public class MainActivity extends ActionBarActivity implements NavigationDrawerF
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-
-        if (id == R.id.action_edit) {
-            Intent anIntent = new Intent(this, SetupActivity.class);
-            //startActivityForResult(anIntent, SetupActivity.SETUP_ACTIVITY_ID);
-            startActivity(anIntent);
-            return true;
-
-        } else if(id == R.id.action_open) {
-            DialogOpenFileFragment fragment = DialogOpenFileFragment.newInstance(this);
-            fragment.show(getSupportFragmentManager(), "DialogOpenFileFragment");
-            return true;
-
-        } else if (id == R.id.action_save) {
-            // Can we save to external storage?
-            if(FileIO.isExternalStorageWritable()) {
-                DialogFileNameFragment fragment = DialogFileNameFragment.newInstance(this);
-                fragment.show(getSupportFragmentManager(), "DialogFileNameFragment");
-            } else {
-                Toast.makeText(this, "External Storage unavailable", Toast.LENGTH_SHORT).show();
-            }
-            return true;
-        }
-
         return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public void onFileChosen(String fileName) {
-        if(fileName == null) {
-            return; // Do nothing
-        }
-
-        // Load file
-        Toast.makeText(this, "Loading: "+fileName, Toast.LENGTH_SHORT).show();
-        if(DataManager.importData(fileName)){
-
-            // If loading was successful, refresh navigation drawer.
-            refreshDrawer();
-        } else {
-            Toast.makeText(this, "Loading Failed!", Toast.LENGTH_SHORT).show();
-        }
     }
 
     @Override
