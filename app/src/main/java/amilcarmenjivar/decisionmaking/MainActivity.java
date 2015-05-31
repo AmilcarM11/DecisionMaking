@@ -1,7 +1,9 @@
 package amilcarmenjivar.decisionmaking;
 
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
@@ -32,13 +34,18 @@ public class MainActivity extends ActionBarActivity implements NavigationDrawerF
 
     private Fragment mActiveFragment = null;
 
+    private boolean mForceCreateCompareFragment = false;
+
+    private static final String KEY_INSTANCE_NAME = "active_instance_name";
+
     private static final String ARG_ACTIVE_SECTION = "navigation_active_section";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Anything needed to be loaded has already been.
+        // Load stuff from temporal file
+        checkFirstLoad();
 
         mNavigationItems = DataManager.getNavigationItems(this);
         setContentView(R.layout.activity_main);
@@ -48,7 +55,14 @@ public class MainActivity extends ActionBarActivity implements NavigationDrawerF
     @Override
     protected void onStop() {
         Log.wtf("DecisionMaker", "Saving temp file");
-        DataManager.saveTempFile(this);
+        if(DataManager.getIsInstanceLoaded()) {
+            DataManager.saveTempFile(this);
+            // Save active instance name
+            SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = sharedPref.edit();
+            editor.putString(KEY_INSTANCE_NAME, DataManager.getLoadedInstance().getInstanceName());
+            editor.apply();
+        }
         super.onStop();
     }
 
@@ -66,6 +80,37 @@ public class MainActivity extends ActionBarActivity implements NavigationDrawerF
         super.onRestoreInstanceState(savedInstanceState);
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if(requestCode == EditActivity.SETUP_ACTIVITY_ID) {
+            if(resultCode == RESULT_OK) {
+                mForceCreateCompareFragment = true;
+                refreshDrawer();
+                mDrawerFragment.selectItem(1);
+            }
+            return;
+        }
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    private void checkFirstLoad() {
+        if(!DataManager.getIsInstanceLoaded()) {
+            if(FileIO.isTempFileFound(this)) {
+                Log.wtf("DecisionMaker", "Loading data from temp file...");
+                if(DataManager.loadTempFile(this)) {
+                    Log.wtf("DecisionMaker", "Loading successful!");
+                    SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
+                    String instanceName = sharedPref.getString(KEY_INSTANCE_NAME, "Reloaded Instance");
+                    DataManager.getLoadedInstance().setInstanceName(instanceName);
+                } else {
+                    Log.wtf("DecisionMaker", "Loading failed. Using test values instead.");
+
+                }
+            } else {
+                Log.wtf("DecisionMaker", "Temp file not found. What to do?");
+            }
+        }
+    }
 
     // ----- Navigation Drawer ----- //
 
@@ -93,7 +138,7 @@ public class MainActivity extends ActionBarActivity implements NavigationDrawerF
         FragmentTransaction transaction = getSupportFragmentManager()
             .beginTransaction()
             .replace(R.id.container, fragment);
-        transaction.commit();
+        transaction.commitAllowingStateLoss();
         mActiveFragment = fragment;
     }
 
@@ -113,7 +158,7 @@ public class MainActivity extends ActionBarActivity implements NavigationDrawerF
                 replaceFragment(ResultsFragment.newInstance());
                 return;
 
-            } else if( lastSelected >= 0 && lastSelected < navItems ) {
+            } else if( !mForceCreateCompareFragment && lastSelected >= 0 && lastSelected < navItems ) {
                 NavigationItem oldItem = getNavDrawerItems().get(lastSelected);
                 if(item.type == oldItem.type && mActiveFragment != null && mActiveFragment instanceof CompareFragment) {
                     // Just set the page.
@@ -124,6 +169,7 @@ public class MainActivity extends ActionBarActivity implements NavigationDrawerF
             // Replace with other compare fragment
             int type = item.type == NavigationItem.Type.ATTRIBUTE ? 0 : 1;
             int page = item.childID > 0 ? item.childID : 0;
+            mForceCreateCompareFragment = false;
 
             replaceFragment(CompareFragment.newInstance(position, type, page));
         }
@@ -132,24 +178,25 @@ public class MainActivity extends ActionBarActivity implements NavigationDrawerF
     @Override
     public void onAlternateItemSelected(int position, NavigationItem item) {
         if(item == null) {
-            Toast.makeText(this, "I don't even know what to do...", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "I don't even...", Toast.LENGTH_SHORT).show();
 
         } else if(item.childID == -1) {
             if(position == 0) { // Edit
-                Intent anIntent = new Intent(this, SetupActivity.class);
-                startActivity(anIntent);
+                Intent anIntent = new Intent(this, EditActivity.class);
+                anIntent.putExtra(EditActivity.ARG_EDIT_MODE, true);
+                startActivityForResult(anIntent, EditActivity.SETUP_ACTIVITY_ID);
             } else if(position == 1) { // Save
                 if(FileIO.isExternalStorageWritable()) {
-                    // TODO: suggest name
-                    DialogFileNameFragment fragment = DialogFileNameFragment.newInstance(this);
+                    String instanceName = DataManager.getLoadedInstance().getInstanceName();
+                    DialogFileNameFragment fragment = DialogFileNameFragment.newInstance(this, instanceName);
                     fragment.show(getSupportFragmentManager(), "DialogFileNameFragment");
                 } else {
                     Toast.makeText(this, "External Storage unavailable", Toast.LENGTH_SHORT).show();
                 }
             } else if(position == 2) { // New
-                // TODO: Make sure it starts with a blank thing
-                Intent anIntent = new Intent(this, SetupActivity.class);
-                startActivity(anIntent);
+                Intent anIntent = new Intent(this, EditActivity.class);
+                anIntent.putExtra(EditActivity.ARG_EDIT_MODE, false);
+                startActivityForResult(anIntent, EditActivity.SETUP_ACTIVITY_ID);
             }
         } else {
             String fileName = item.text;
@@ -157,12 +204,12 @@ public class MainActivity extends ActionBarActivity implements NavigationDrawerF
             if(DataManager.importData(fileName)){
                 // If loading was successful, refresh navigation drawer.
                 refreshDrawer();
+                mDrawerFragment.selectItem(-1);
             } else {
                 Toast.makeText(this, "Loading Failed!", Toast.LENGTH_SHORT).show();
             }
         }
     }
-
     @SuppressWarnings("deprecation")
     public void restoreActionBar() {
         ActionBar actionBar = getSupportActionBar();
@@ -225,6 +272,7 @@ public class MainActivity extends ActionBarActivity implements NavigationDrawerF
                     Toast.makeText(this, "Enter a valid name.", Toast.LENGTH_SHORT).show();
                 } else if(DataManager.exportData(userInput.trim()+".csv")) {
                     Toast.makeText(this, "File saved: " + userInput.trim() + ".csv", Toast.LENGTH_SHORT).show();
+                    mDrawerFragment.alternateLayout();
                 } else {
                     Toast.makeText(this, "Saving Failed!", Toast.LENGTH_SHORT).show();
                 }

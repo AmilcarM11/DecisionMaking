@@ -65,6 +65,7 @@ public class NavigationDrawerFragment extends Fragment {
     private ListView mInstanceListView;
     private InstanceListAdapter mInstanceListAdapter;
 
+    private TextView mInstanceTextView;
     private TextView mCandidatesTextView;
     private TextView mAttributesTextView;
     private TextView mProfilesTextView;
@@ -110,6 +111,7 @@ public class NavigationDrawerFragment extends Fragment {
         View root = inflater.inflate(R.layout.fragment_navigation_drawer, container, false);
 
         // Header views
+        mInstanceTextView = (TextView) root.findViewById(R.id.instanceNameText);
         mCandidatesTextView = (TextView) root.findViewById(R.id.candidatesText);
         mAttributesTextView = (TextView) root.findViewById(R.id.attributesText);
         mProfilesTextView = (TextView) root.findViewById(R.id.profilesText);
@@ -299,13 +301,15 @@ public class NavigationDrawerFragment extends Fragment {
         String attributes = "-";
         String profiles = "-";
         String judges = "-";
+        String instanceName = "";
         if(DataManager.getIsInstanceLoaded()) {
             candidates = DataManager.getCandidates().size() + "";
             attributes = DataManager.getAttributes().size() + "";
             profiles = DataManager.getProfiles().size() + "";
             judges = DataManager.getJudges().size() + "";
+            instanceName = DataManager.getLoadedInstance().getInstanceName();
         }
-
+        mInstanceTextView.setText(instanceName);
         mCandidatesTextView.setText(candidates);
         mAttributesTextView.setText(attributes);
         mProfilesTextView.setText(profiles);
@@ -320,8 +324,10 @@ public class NavigationDrawerFragment extends Fragment {
         // Re-setting the adapter causes a full redraw of the drawer.
         mDrawerListView.setAdapter(new NavDrawerAdapter(getActivity(), navItems));
 
-        // Open the results fragment, and keep the drawer open.
-        selectItem(navItems.size() - 1);
+        // Set the drawer back to regular view
+        if(mAlternativeLayoutShown) {
+            alternateLayout();
+        }
 
         mDrawerLayout.openDrawer(mFragmentContainerView);
     }
@@ -376,10 +382,10 @@ public class NavigationDrawerFragment extends Fragment {
             return getContext().getString(stringRes);
         }
 
-        private class PopulateItemsTask extends AsyncTask<Void, Void, String[]> {
+        private class PopulateItemsTask extends AsyncTask<Void, Void, List<String>> {
 
             @Override
-            protected void onPostExecute(String[] items) {
+            protected void onPostExecute(List<String> items) {
                 int i = 0;
                 for(String item : items) {
                     if(item != null && !item.equals("")) {
@@ -404,7 +410,7 @@ public class NavigationDrawerFragment extends Fragment {
             }
 
             @Override
-            protected String[] doInBackground(Void... params) {
+            protected List<String> doInBackground(Void... params) {
                 // everything in here gets executed in a separate thread
                 return FileIO.listFiles();
             }

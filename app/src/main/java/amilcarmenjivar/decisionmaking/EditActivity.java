@@ -1,6 +1,5 @@
 package amilcarmenjivar.decisionmaking;
 
-import android.content.Intent;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
@@ -10,37 +9,47 @@ import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Toast;
 
 import amilcarmenjivar.decisionmaking.data.DataManager;
+import amilcarmenjivar.decisionmaking.data.Instance;
 import amilcarmenjivar.decisionmaking.dialogs.DialogAddFragment;
 
-public class SetupActivity extends ActionBarActivity implements DialogAddFragment.OnDialogResultListener {
+public class EditActivity extends ActionBarActivity implements DialogAddFragment.OnDialogResultListener {
+
+    private Instance mInstance;
 
     private int mCurrentPage = 0;
 
-    private ViewPager mPager;
-    private SetupPagerAdapter mPageAdapter;
-
-    private static final String STATE_CURRENT_PAGE = "current_page";
+    private EditPagerAdapter mPageAdapter;
 
     public static final int SETUP_ACTIVITY_ID = 21;
 
+    public static final String ARG_EDIT_MODE = "edit_mode";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_setup);
+
+        // Determine what instance to deal with
+        boolean editMode = getIntent().getBooleanExtra(ARG_EDIT_MODE, false);
+        if(DataManager.getIsInstanceLoaded() && editMode) {
+            mInstance = DataManager.getLoadedInstance().copy();
+        } else {
+            mInstance = Instance.createEmptyInstance();
+        }
+
+        setContentView(R.layout.activity_edit);
 
         // Toolbar
         Toolbar mToolbar = (Toolbar) findViewById(R.id.app_bar);
         setSupportActionBar(mToolbar);
         //getSupportActionBar().setDisplayShowHomeEnabled(true);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         // Pager
-        mPager = (ViewPager) findViewById(R.id.elements_viewPager);
-        mPageAdapter = new SetupPagerAdapter(getSupportFragmentManager());
+        ViewPager mPager = (ViewPager) findViewById(R.id.elements_viewPager);
+        mPageAdapter = new EditPagerAdapter(getSupportFragmentManager());
         mPager.setAdapter(mPageAdapter);
         mPager.setCurrentItem(mCurrentPage, true);
         mPager.setOnPageChangeListener(mPageAdapter);
@@ -49,19 +58,15 @@ public class SetupActivity extends ActionBarActivity implements DialogAddFragmen
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_setup, menu);
+        // TODO: Make sure Home button is removed.
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-        if(id == android.R.id.home) {
-            if(checkDataIntegrity()) {
-                startMainActivity();
-            }
-            return true;
 
-        } else if(id == R.id.action_add) {
+        if(id == R.id.action_add) {
             DialogAddFragment fragment = DialogAddFragment.newInstance(mCurrentPage, this);
             fragment.show(getSupportFragmentManager(), "DialogAddFragment");
             return true;
@@ -71,9 +76,7 @@ public class SetupActivity extends ActionBarActivity implements DialogAddFragmen
 
     @Override
     public void onBackPressed() {
-        if(checkDataIntegrity()) {
-            startMainActivity();
-        }
+        // Do nothing
     }
 
     @Override
@@ -81,37 +84,47 @@ public class SetupActivity extends ActionBarActivity implements DialogAddFragmen
         if(accepted && userInput != null && !userInput.equals("")) {
             switch (mCurrentPage) {
                 case 0:
-                    DataManager.addCandidate(userInput);
+                    mInstance.addCandidate(userInput);
                     break;
                 case 1:
-                    DataManager.addAttribute(userInput);
+                    mInstance.addAttribute(userInput);
                     break;
                 case 2:
-                    DataManager.addProfile(userInput);
+                    mInstance.addProfile(userInput);
                     break;
                 case 3:
                 default:
-                    DataManager.addJudge(userInput);
+                    mInstance.addJudge(userInput);
             }
             mPageAdapter.refresh();
         }
     }
 
-    private void startMainActivity() {
-        Intent intent = new Intent(this, MainActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        startActivity(intent);
+    public void onSaveButtonPressed(View v) {
+        if(checkDataIntegrity()) {
+            DataManager.setLoadedInstance(mInstance);
+            setResult(RESULT_OK);
+            finish();
+        }
+    }
+
+    public void onDiscardButtonPressed(View v) {
+        setResult(RESULT_CANCELED);
         finish();
+    }
+
+    public Instance getEditingInstance() {
+        return mInstance;
     }
 
     // Check if there is at least 1 judge, 1 profile, 2 attributes and 2 candidates.
     private boolean checkDataIntegrity() {
         boolean result = true;
 
-        int judges = DataManager.getJudges().size();
-        int profiles = DataManager.getProfiles().size();
-        int attributes = DataManager.getAttributes().size();
-        int candidates = DataManager.getCandidates().size();
+        int judges = mInstance.getJudges().size();
+        int profiles = mInstance.getProfiles().size();
+        int attributes = mInstance.getAttributes().size();
+        int candidates = mInstance.getCandidates().size();
 
         if(candidates <2) {
             result = false;
@@ -141,13 +154,13 @@ public class SetupActivity extends ActionBarActivity implements DialogAddFragmen
         return result;
     }
 
-    private class SetupPagerAdapter extends FragmentStatePagerAdapter implements ViewPager.OnPageChangeListener {
+    private class EditPagerAdapter extends FragmentStatePagerAdapter implements ViewPager.OnPageChangeListener {
 
         private ElementsFragment[] fragments;
 
         private final int[] titlesRes = { R.string.candidates, R.string.attributes, R.string.profiles, R.string.judges };
 
-        public SetupPagerAdapter(FragmentManager fm) {
+        public EditPagerAdapter(FragmentManager fm) {
             super(fm);
             fragments = new ElementsFragment[titlesRes.length];
         }

@@ -16,7 +16,7 @@ import com.terlici.dragndroplist.DragNDropListView;
 
 import java.util.List;
 
-import amilcarmenjivar.decisionmaking.data.DataManager;
+import amilcarmenjivar.decisionmaking.data.Instance;
 
 /**
 * Created by Amilcar Menjivar on 28/04/2015.
@@ -31,8 +31,6 @@ public class ElementsFragment extends Fragment implements AdapterView.OnItemClic
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //Bundle b = savedInstanceState != null ? savedInstanceState : getArguments();
-        //mElements = b == null ? 0 : b.getInt(ARG_ELEMENT_TYPE);
         mElements = getArguments().getInt(ARG_ELEMENT_TYPE);
     }
 
@@ -66,35 +64,39 @@ public class ElementsFragment extends Fragment implements AdapterView.OnItemClic
         Toast.makeText(getActivity(), "Removing :"+ t, Toast.LENGTH_SHORT).show();
     }
 
+    private Instance getInstance() {
+        return ((EditActivity)getActivity()).getEditingInstance();
+    }
+
     private List<String> elements() {
         if (mElements == 0) {
-            return DataManager.getCandidates();
+            return getInstance().getCandidates();
         } else if (mElements == 1) {
-            return DataManager.getAttributes();
+            return getInstance().getAttributes();
         } else if (mElements == 2) {
-            return DataManager.getProfiles();
+            return getInstance().getProfiles();
         } else {
-            return DataManager.getJudges();
+            return getInstance().getJudges();
         }
     }
 
     private boolean tryDelete(int position) {
         if (mElements == 0) {
-            return DataManager.removeCandidate(position);
+            return getInstance().removeCandidate(position);
         } else if (mElements == 1) {
-            return DataManager.removeAttribute(position);
+            return getInstance().removeAttribute(position);
         } else if (mElements == 2) {
-            return DataManager.removeProfile(position);
+            return getInstance().removeProfile(position);
         } else {
-            return DataManager.removeJudge(position);
+            return getInstance().removeJudge(position);
         }
     }
 
     private void onListReOrdered() {
         if(mElements == 0) { // Candidates;
-            DataManager.updateAttributeData();
+            getInstance().getAttributeData().updateElements();
         } else if(mElements == 1) { // Attributes
-            DataManager.updateProfileData();
+            getInstance().getProfileData().updateElements();
         }
     }
 

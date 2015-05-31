@@ -24,6 +24,16 @@ public class DialogFileNameFragment extends DialogFragment {
 
     private OnDialogResultListener mDialogResultListener;
 
+    private String suggestedFileName = "";
+
+    public static final String ARG_SUGGESTED_FILENAME = "suggested_filename";
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        suggestedFileName = getArguments().getString(ARG_SUGGESTED_FILENAME, "");
+    }
+
     @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -31,6 +41,11 @@ public class DialogFileNameFragment extends DialogFragment {
 
         final EditText inputView = new EditText(this.getActivity());
         inputView.setHint(R.string.hint_file_name);
+
+        // Suggested Text
+        inputView.setText(suggestedFileName);
+        inputView.setSelectAllOnFocus(true);
+
 
         builder.setView(viewWithMargins(inputView))
                 .setTitle("Save Results")
@@ -53,13 +68,13 @@ public class DialogFileNameFragment extends DialogFragment {
         return dialog;
     }
 
-    public static DialogFileNameFragment newInstance(OnDialogResultListener listener) {
+    public static DialogFileNameFragment newInstance(OnDialogResultListener listener, String suggestedFileName) {
         DialogFileNameFragment fragment = new DialogFileNameFragment();
         fragment.mDialogResultListener = listener;
 
         Bundle args = new Bundle();
+        args.putString(ARG_SUGGESTED_FILENAME, suggestedFileName);
         fragment.setArguments(args);
-        // TODO: suggested file name
         return fragment;
     }
 

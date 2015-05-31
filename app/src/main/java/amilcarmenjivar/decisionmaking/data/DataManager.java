@@ -55,52 +55,12 @@ public class DataManager {
         return getLoadedInstance().getJudges();
     }
 
-    public static boolean addCandidate(String c) {
-        return getLoadedInstance().addCandidate(c);
-    }
-
-    public static boolean addAttribute(String a) {
-        return getLoadedInstance().addAttribute(a);
-    }
-
-    public static boolean addProfile(String p) {
-        return getLoadedInstance().addProfile(p);
-    }
-
-    public static boolean addJudge(String j){
-        return getLoadedInstance().addJudge(j);
-    }
-
-    public static boolean removeCandidate(int index) {
-        return getLoadedInstance().removeCandidate(index);
-    }
-
-    public static boolean removeAttribute(int index) {
-        return getLoadedInstance().removeAttribute(index);
-    }
-
-    public static boolean removeProfile(int index) {
-        return getLoadedInstance().removeProfile(index);
-    }
-
-    public static boolean removeJudge(int index) {
-        return getLoadedInstance().removeJudge(index);
-    }
-
     public static void writeAttributesInfo(int attribute, int pair, int judge, int value) {
         getLoadedInstance().writeAttributesInfo(attribute, pair, judge, value);
     }
 
     public static void writeProfilesInfo(int profile, int pair, int judge, int value) {
         getLoadedInstance().writeProfilesInfo(profile, pair, judge, value);
-    }
-
-    public static void updateAttributeData() {
-        getAttributeData().updateElements();
-    }
-
-    public static void updateProfileData() {
-        getProfileData().updateElements();
     }
 
     public static Data getAttributeData() {
@@ -126,12 +86,10 @@ public class DataManager {
                 setLoadedInstance(instance);
                 return true;
             }
-            return false;
         }catch(Exception e) {
             Log.wtf("MyApp", "Problems reloading. ", e);
-            setLoadedInstance(Instance.createTestInstance());
-            return false;
         }
+        return false;
     }
 
     // If this is true, refresh data.
@@ -141,6 +99,7 @@ public class DataManager {
         Instance loadedInstance = FileIO.importFromFile(file);
         if(loadedInstance != null) {
             setLoadedInstance(loadedInstance);
+            getLoadedInstance().setInstanceName(fileName);
             return true;
         }
         return false;

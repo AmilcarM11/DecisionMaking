@@ -13,6 +13,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import amilcarmenjivar.decisionmaking.data.DataManager;
@@ -33,14 +34,7 @@ public class FileIO {
     // TODO: Failsafes: nCandidates <= 2, nAttributes <= 2, nProfiles < 1, nJudges < 1
 
 
-    // TODO: remove after testing
-    private static boolean useTestInstances = false;
-
-    public static String[] listFiles() {
-        if(useTestInstances) {
-            return new String[] { "Instance 1", "Instance 2", "Instance 3" };
-        }
-
+    public static List<String> listFiles() {
         File directory = getSaveDirectory();
         File[] files = directory.listFiles(new FilenameFilter() {
             @Override
@@ -58,7 +52,10 @@ public class FileIO {
             }
         }
 
-        return instanceNames.toArray(new String[instanceNames.size()]);
+        // Sort Alphabetically
+        Collections.sort(instanceNames);
+
+        return instanceNames;
     }
 
     private static boolean isValidFile(File file) {

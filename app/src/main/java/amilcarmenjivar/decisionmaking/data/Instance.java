@@ -14,6 +14,10 @@ import static amilcarmenjivar.decisionmaking.DecisionAlgorithm.translatePreferen
  */
 public class Instance {
 
+    private static int instanceCount = 0;
+
+    private String instanceName = "Instance #" + instanceCount++;
+
     private List<String> candidates;
     private List<String> attributes;
     private List<String> profiles;
@@ -54,6 +58,10 @@ public class Instance {
 
     // ----- Access Data ----- //
 
+    public String getInstanceName() {
+        return instanceName;
+    }
+
     public List<String> getJudges() {
         return judges;
     }
@@ -79,6 +87,12 @@ public class Instance {
     }
 
     // ----- Modify data ----- //
+
+    public void setInstanceName(String name) {
+        if(name != null) {
+            this.instanceName = name;
+        }
+    }
 
     public boolean addCandidate(String c) {
         c = c.trim();
@@ -369,6 +383,18 @@ public class Instance {
     }
 
 
+    public Instance copy() {
+        List<String> c = new ArrayList<String>(getCandidates()),
+                a = new ArrayList<String>(getAttributes()),
+                p = new ArrayList<String>(getProfiles()),
+                j = new ArrayList<String>(getJudges());
+
+        int[][][] attData = getAttributeData().getRawData();
+        int[][][] profData = getProfileData().getRawData();
+
+        return newInstance(c, a, p, j, attData, profData);
+    }
+
     /**
      * Creates a new Instance with all the data provided.
      *
@@ -388,19 +414,25 @@ public class Instance {
     }
 
     public static Instance createTestInstance() {
+        Instance instance = createEmptyInstance();
+
+        instance.addCandidate("Candidato 1");
+        instance.addCandidate("Candidato 2");
+        instance.addCandidate("Candidato 3");
+        instance.addAttribute("Atributo 1");
+        instance.addAttribute("Atributo 2");
+        instance.addAttribute("Atributo 3");
+        instance.addProfile("Perfil 1");
+        instance.addJudge("Juez 1");
+
+        return instance;
+    }
+
+    public static Instance createEmptyInstance() {
         List<String> candidates = new ArrayList<String>();
         List<String> attributes = new ArrayList<String>();
         List<String> profiles = new ArrayList<String>();
         List<String> judges = new ArrayList<String>();
-
-        candidates.add("Candidato 1");
-        candidates.add("Candidato 2");
-        candidates.add("Candidato 3");
-        attributes.add("Atributo 1");
-        attributes.add("Atributo 2");
-        attributes.add("Atributo 3");
-        profiles.add("Perfil 1");
-        judges.add("Juez 1");
 
         Data attributeData = Data.emptyData(attributes, candidates, judges);
         Data profileData = Data.emptyData(profiles, attributes, judges);
