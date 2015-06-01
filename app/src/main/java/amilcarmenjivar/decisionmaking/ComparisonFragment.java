@@ -1,5 +1,6 @@
 package amilcarmenjivar.decisionmaking;
 
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -48,33 +49,39 @@ public class ComparisonFragment extends Fragment {
         String criteria = (mElements == 0 ? DataManager.getAttributes() : DataManager.getProfiles()).get(mCriteria);
         String judge = DataManager.getJudges().get(mJudge);
 
+        // Asynchronously populate the comparison table.
+        new PopulateComparisonTableTask(table, inflater, data, criteria, judge).execute();
+
         // Create the table rows
-        mBars = new ArrayList<ComboSeekBar>();
+//        mBars = new ArrayList<ComboSeekBar>();
 
-        int i = 0;
-        for(Pair pair : data.getPairs()){
-            View row = inflater.inflate(R.layout.row_compare, table, false);
-            MyTextView elem1 = (MyTextView) row.findViewById(R.id.textElem1);
-            MyTextView elem2 = (MyTextView) row.findViewById(R.id.textElem2);
-            ComboSeekBar seekBar = (ComboSeekBar) row.findViewById(R.id.seekBar);
+        // TODO: async
 
-            // Set the text
-            elem1.setText(pair.elem1);
-            elem2.setText(pair.elem2);
 
-            // Add click listeners to the text views, so that clicking them move the seek bar value.
-            elem1.configure(i, -1);
-            elem2.configure(i, +1);
-            elem1.setOnClickListener(onClickListener);
-            elem2.setOnClickListener(onClickListener);
-
-            int value = data.getValue(criteria, pair, judge);
-            seekBar.setInfo(i, value);
-            seekBar.setOnItemClickListener(onItemClickListener);
-            mBars.add(seekBar);
-            table.addView(row);
-            i++;
-        }
+//        int i = 0;
+//        for(Pair pair : data.getPairs()){
+//            View row = inflater.inflate(R.layout.row_compare, table, false);
+//            MyTextView elem1 = (MyTextView) row.findViewById(R.id.textElem1);
+//            MyTextView elem2 = (MyTextView) row.findViewById(R.id.textElem2);
+//            ComboSeekBar seekBar = (ComboSeekBar) row.findViewById(R.id.seekBar);
+//
+//            // Set the text
+//            elem1.setText(pair.elem1);
+//            elem2.setText(pair.elem2);
+//
+//            // Add click listeners to the text views, so that clicking them move the seek bar value.
+//            elem1.configure(i, -1);
+//            elem2.configure(i, +1);
+//            elem1.setOnClickListener(onClickListener);
+//            elem2.setOnClickListener(onClickListener);
+//
+//            int value = data.getValue(criteria, pair, judge);
+//            seekBar.setInfo(i, value);
+//            seekBar.setOnItemClickListener(onItemClickListener);
+//            mBars.add(seekBar);
+//            table.addView(row);
+//            i++;
+//        }
         return rootView;
     }
 
@@ -145,4 +152,61 @@ public class ComparisonFragment extends Fragment {
         }
     }
 
+
+    private class PopulateComparisonTableTask extends AsyncTask<Void, Void, List<Pair>> {
+
+        private TableLayout table;
+        private LayoutInflater inflater;
+        private Data data;
+        private String criteria;
+        private String judge;
+
+        public PopulateComparisonTableTask(TableLayout table, LayoutInflater inflater, Data data, String criteria, String judge) {
+            this.inflater = inflater;
+            this.table = table;
+            this.data = data;
+            this.criteria = criteria;
+            this.judge = judge;
+        }
+
+        @Override
+        protected void onPostExecute(List<Pair> pairs) {
+            int i = 0;
+            for(Pair pair : pairs){
+                View row = inflater.inflate(R.layout.row_compare, table, false);
+                MyTextView elem1 = (MyTextView) row.findViewById(R.id.textElem1);
+                MyTextView elem2 = (MyTextView) row.findViewById(R.id.textElem2);
+                ComboSeekBar seekBar = (ComboSeekBar) row.findViewById(R.id.seekBar);
+
+                // Set the text
+                elem1.setText(pair.elem1);
+                elem2.setText(pair.elem2);
+
+                // Add click listeners to the text views, so that clicking them move the seek bar value.
+                elem1.configure(i, -1);
+                elem2.configure(i, +1);
+                elem1.setOnClickListener(onClickListener);
+                elem2.setOnClickListener(onClickListener);
+
+                int value = data.getValue(criteria, pair, judge);
+                seekBar.setInfo(i, value);
+                seekBar.setOnItemClickListener(onItemClickListener);
+                mBars.add(seekBar);
+                table.addView(row);
+                i++;
+            }
+        }
+
+        @Override
+        protected void onPreExecute() {
+            mBars = new ArrayList<ComboSeekBar>();
+        }
+
+        @Override
+        protected List<Pair> doInBackground(Void... params) {
+            // everything in here gets executed in a separate thread
+            return data.getPairs();
+        }
+
+    }
 }
