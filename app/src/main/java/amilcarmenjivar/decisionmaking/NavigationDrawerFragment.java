@@ -153,60 +153,61 @@ public class NavigationDrawerFragment extends Fragment {
         // Select position
         mDrawerListView.setItemChecked(mCurrentSelectedPosition, true);
 
-        // set a custom shadow that overlays the main content when the drawer opens
-        mDrawerLayout.setDrawerShadow(R.drawable.drawer_shadow, GravityCompat.START);
-
         ActionBar actionBar = getActionBar();
         actionBar.setDisplayHomeAsUpEnabled(true);
         actionBar.setHomeButtonEnabled(true);
 
-        mDrawerToggle = new ActionBarDrawerToggle(getActivity(), mDrawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close) {
-            @Override
-            public void onDrawerClosed(View drawerView) {
-                super.onDrawerClosed(drawerView);
-                if (!isAdded()) {
-                    return;
-                }
-                getActivity().supportInvalidateOptionsMenu(); // calls onPrepareOptionsMenu()
-            }
+        if(mDrawerLayout != null) {
+            // set a custom shadow that overlays the main content when the drawer opens
+            mDrawerLayout.setDrawerShadow(R.drawable.drawer_shadow, GravityCompat.START);
 
-            @Override
-            public void onDrawerOpened(View drawerView) {
-                super.onDrawerOpened(drawerView);
-                if (!isAdded()) {
-                    return;
+            mDrawerToggle = new ActionBarDrawerToggle(getActivity(), mDrawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close) {
+                @Override
+                public void onDrawerClosed(View drawerView) {
+                    super.onDrawerClosed(drawerView);
+                    if (!isAdded()) {
+                        return;
+                    }
+                    getActivity().supportInvalidateOptionsMenu(); // calls onPrepareOptionsMenu()
                 }
-                if (!mUserLearnedDrawer) {
-                    // The user manually opened the drawer; store this flag to prevent auto-showing
-                    // the navigation drawer automatically in the future.
-                    mUserLearnedDrawer = true;
-                    SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
-                    sp.edit().putBoolean(PREF_USER_LEARNED_DRAWER, true).apply();
-                }
-                getActivity().supportInvalidateOptionsMenu(); // calls onPrepareOptionsMenu()
-            }
-        };
 
-        // If the user hasn't 'learned' about the drawer, open it to introduce them to the drawer,
-        // per the navigation drawer design guidelines.
+                @Override
+                public void onDrawerOpened(View drawerView) {
+                    super.onDrawerOpened(drawerView);
+                    if (!isAdded()) {
+                        return;
+                    }
+                    if (!mUserLearnedDrawer) {
+                        // The user manually opened the drawer; store this flag to prevent auto-showing
+                        // the navigation drawer automatically in the future.
+                        mUserLearnedDrawer = true;
+                        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
+                        sp.edit().putBoolean(PREF_USER_LEARNED_DRAWER, true).apply();
+                    }
+                    getActivity().supportInvalidateOptionsMenu(); // calls onPrepareOptionsMenu()
+                }
+            };
+
+            // If the user hasn't 'learned' about the drawer, open it to introduce them to the drawer,
+            // per the navigation drawer design guidelines.
 //        if (!mUserLearnedDrawer && !mFromSavedInstanceState) {
 //            mDrawerLayout.openDrawer(mFragmentContainerView);
 //        }
-        if (!mFromSavedInstanceState) {
-            mDrawerLayout.openDrawer(mFragmentContainerView);
+            if (!mFromSavedInstanceState) {
+                mDrawerLayout.openDrawer(mFragmentContainerView);
+            }
+            mDrawerLayout.setDrawerListener(mDrawerToggle);
+
+            // Defer code dependent on restoration of previous instance state.
+            mDrawerLayout.post(new Runnable() {
+                @Override
+                public void run() {
+                    mDrawerToggle.syncState();
+                }
+            });
         }
 
-        mDrawerLayout.setDrawerListener(mDrawerToggle);
-
         updateHeader();
-
-        // Defer code dependent on restoration of previous instance state.
-        mDrawerLayout.post(new Runnable() {
-            @Override
-            public void run() {
-                mDrawerToggle.syncState();
-            }
-        });
     }
 
     @Override
@@ -329,7 +330,9 @@ public class NavigationDrawerFragment extends Fragment {
             alternateLayout();
         }
 
-        mDrawerLayout.openDrawer(mFragmentContainerView);
+        if(mDrawerLayout != null) {
+            mDrawerLayout.openDrawer(mFragmentContainerView);
+        }
     }
 
     /**
