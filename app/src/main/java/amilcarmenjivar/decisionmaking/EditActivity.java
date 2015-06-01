@@ -1,5 +1,6 @@
 package amilcarmenjivar.decisionmaking;
 
+import android.app.Activity;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
@@ -10,6 +11,8 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import amilcarmenjivar.decisionmaking.data.DataManager;
@@ -21,6 +24,8 @@ public class EditActivity extends ActionBarActivity implements DialogAddFragment
     private Instance mInstance;
 
     private int mCurrentPage = 0;
+
+    private EditText mInstanceTextView;
 
     private EditPagerAdapter mPageAdapter;
 
@@ -45,7 +50,17 @@ public class EditActivity extends ActionBarActivity implements DialogAddFragment
         // Toolbar
         Toolbar mToolbar = (Toolbar) findViewById(R.id.app_bar);
         setSupportActionBar(mToolbar);
-        //getSupportActionBar().setDisplayShowHomeEnabled(true);
+        mInstanceTextView = (EditText) mToolbar.findViewById(R.id.instanceNameText);
+        mInstanceTextView.setText(mInstance.getInstanceName());
+        mInstanceTextView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override // Hide keyboard when done editing instance name.
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (!hasFocus) {
+                    InputMethodManager inputMethodManager =(InputMethodManager)getSystemService(Activity.INPUT_METHOD_SERVICE);
+                    inputMethodManager.hideSoftInputFromWindow(v.getWindowToken(), 0);
+                }
+            }
+        });
 
         // Pager
         ViewPager mPager = (ViewPager) findViewById(R.id.elements_viewPager);
@@ -58,7 +73,6 @@ public class EditActivity extends ActionBarActivity implements DialogAddFragment
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_setup, menu);
-        // TODO: Make sure Home button is removed.
         return true;
     }
 
@@ -102,6 +116,7 @@ public class EditActivity extends ActionBarActivity implements DialogAddFragment
 
     public void onSaveButtonPressed(View v) {
         if(checkDataIntegrity()) {
+            mInstance.setInstanceName(mInstanceTextView.getText().toString());
             DataManager.setLoadedInstance(mInstance);
             setResult(RESULT_OK);
             finish();
@@ -126,7 +141,12 @@ public class EditActivity extends ActionBarActivity implements DialogAddFragment
         int attributes = mInstance.getAttributes().size();
         int candidates = mInstance.getCandidates().size();
 
-        if(candidates <2) {
+        if(mInstanceTextView.getText().toString().equals("")) {
+            result = false;
+            String message = getString(R.string.enter_instance_name);
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+
+        } else if(candidates <2) {
             result = false;
             String message = String.format(getString(R.string.insufficient_elements),
                     getString(R.string.candidates));

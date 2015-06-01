@@ -392,7 +392,9 @@ public class Instance {
         int[][][] attData = getAttributeData().getRawData();
         int[][][] profData = getProfileData().getRawData();
 
-        return newInstance(c, a, p, j, attData, profData);
+        Instance copy = newInstance(c, a, p, j, attData, profData);
+        copy.setInstanceName(this.getInstanceName());
+        return copy;
     }
 
     /**

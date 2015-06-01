@@ -163,7 +163,6 @@ public class CompareFragment extends Fragment implements ActionBar.OnNavigationL
         }
     }
 
-
     // Checks consistency per criteria and judge (judge=-1 means all judges)
     private double getConsistency(int criteria, int judge) {
         double consistency;

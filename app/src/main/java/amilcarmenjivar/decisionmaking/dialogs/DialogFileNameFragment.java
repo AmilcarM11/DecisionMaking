@@ -46,9 +46,8 @@ public class DialogFileNameFragment extends DialogFragment {
         inputView.setText(suggestedFileName);
         inputView.setSelectAllOnFocus(true);
 
-
         builder.setView(viewWithMargins(inputView))
-                .setTitle("Save Results")
+                .setTitle("Save Instance")
                 .setPositiveButton(R.string.save, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
                         String input = inputView.getText().toString();
