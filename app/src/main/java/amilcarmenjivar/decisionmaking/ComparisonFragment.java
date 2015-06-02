@@ -51,37 +51,6 @@ public class ComparisonFragment extends Fragment {
 
         // Asynchronously populate the comparison table.
         new PopulateComparisonTableTask(table, inflater, data, criteria, judge).execute();
-
-        // Create the table rows
-//        mBars = new ArrayList<ComboSeekBar>();
-
-        // TODO: async
-
-
-//        int i = 0;
-//        for(Pair pair : data.getPairs()){
-//            View row = inflater.inflate(R.layout.row_compare, table, false);
-//            MyTextView elem1 = (MyTextView) row.findViewById(R.id.textElem1);
-//            MyTextView elem2 = (MyTextView) row.findViewById(R.id.textElem2);
-//            ComboSeekBar seekBar = (ComboSeekBar) row.findViewById(R.id.seekBar);
-//
-//            // Set the text
-//            elem1.setText(pair.elem1);
-//            elem2.setText(pair.elem2);
-//
-//            // Add click listeners to the text views, so that clicking them move the seek bar value.
-//            elem1.configure(i, -1);
-//            elem2.configure(i, +1);
-//            elem1.setOnClickListener(onClickListener);
-//            elem2.setOnClickListener(onClickListener);
-//
-//            int value = data.getValue(criteria, pair, judge);
-//            seekBar.setInfo(i, value);
-//            seekBar.setOnItemClickListener(onItemClickListener);
-//            mBars.add(seekBar);
-//            table.addView(row);
-//            i++;
-//        }
         return rootView;
     }
 

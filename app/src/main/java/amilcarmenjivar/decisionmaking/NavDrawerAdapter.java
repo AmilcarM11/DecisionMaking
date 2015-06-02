@@ -23,7 +23,7 @@ public class NavDrawerAdapter extends ArrayAdapter<NavigationItem> {
 
     private static final int LAYOUT_SECTION = R.layout.item_drawer_section;
     private static final int LAYOUT_SECTION_TITLE = R.layout.item_drawer_section_title;
-    private static final int LAYOUT_SECTION_CHILD = R.layout.item_drawer_item;
+    private static final int LAYOUT_SECTION_CHILD = R.layout.item_drawer_section_child;
 
     private static final int[] layouts = { LAYOUT_SECTION, LAYOUT_SECTION_TITLE, LAYOUT_SECTION_CHILD };
 

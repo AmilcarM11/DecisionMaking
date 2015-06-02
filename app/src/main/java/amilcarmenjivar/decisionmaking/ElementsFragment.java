@@ -103,7 +103,7 @@ public class ElementsFragment extends Fragment implements AdapterView.OnItemClic
     private class ElementsAdapter extends ArrayAdapter<String> implements DragNDropAdapter {
 
         public ElementsAdapter(Context context) {
-            super(context, R.layout.list_item, R.id.list_itemText, elements());
+            super(context, R.layout.item_element, R.id.list_itemText, elements());
         }
 
         @Override

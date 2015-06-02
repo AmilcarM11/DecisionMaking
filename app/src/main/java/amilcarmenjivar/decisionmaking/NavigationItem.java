@@ -12,8 +12,6 @@ public class NavigationItem {
     public final int childID;
     public final int iconRes;
 
-    // TODO: also accept stringResId
-
     protected NavigationItem(Type type, String text, int childID, int iconRes) {
         this.type = type;
         this.text = text;
