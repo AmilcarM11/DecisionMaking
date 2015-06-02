@@ -252,7 +252,10 @@ public class NavigationDrawerFragment extends Fragment {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        return mDrawerToggle.onOptionsItemSelected(item) || super.onOptionsItemSelected(item);
+        if(mDrawerToggle != null) {
+            return mDrawerToggle.onOptionsItemSelected(item);
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     public boolean isDrawerOpen() {
@@ -400,13 +403,12 @@ public class NavigationDrawerFragment extends Fragment {
             @Override
             protected void onPreExecute() {
                 clear();
-                // TODO: icons for each item.
-                // Save
-                add(NavigationItem.newItem(getString(R.string.action_edit), R.drawable.ic_assessment_grey600_24dp));
                 // Edit
-                add(NavigationItem.newItem(getString(R.string.action_save), R.drawable.ic_assessment_grey600_24dp));
+                add(NavigationItem.newItem(getString(R.string.action_edit), R.drawable.ic_create_grey600_24dp));
+                // Save
+                add(NavigationItem.newItem(getString(R.string.action_save), R.drawable.ic_save_grey600_24dp));
                 // New
-                add(NavigationItem.newItem(getString(R.string.new_instance), R.drawable.ic_assessment_grey600_24dp));
+                add(NavigationItem.newItem(getString(R.string.new_instance), R.drawable.ic_add_circle_outline_grey600_24dp));
 
                 // title: Load Instance
                 add(NavigationItem.newSection(NavigationItem.Type.INSTANCE, getString(R.string.load_instance)));

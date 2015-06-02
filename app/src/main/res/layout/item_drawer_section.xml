@@ -35,11 +35,10 @@
             android:layout_gravity="center_vertical"
             android:layout_marginLeft="32dp"
             android:layout_marginStart="32dp"
+            style="@style/DrawerItemText"
             android:ellipsize="end"
             android:singleLine="true"
-            android:text="@string/results"
-            android:textColor="#000000"
-            android:textSize="16sp" />
+            android:text="@string/results" />
 
     </LinearLayout>
 

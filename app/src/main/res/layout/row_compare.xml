@@ -10,9 +10,8 @@
     <amilcarmenjivar.decisionmaking.views.MyTextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
         android:text="Test Text"
-        android:layout_gravity="center_vertical"
+        style="@style/MainText"
         android:paddingTop="4dp"
         android:paddingBottom="4dp"
         android:paddingLeft="16dp"
@@ -32,9 +31,8 @@
     <amilcarmenjivar.decisionmaking.views.MyTextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
         android:text="Test Text"
-        android:layout_gravity="center_vertical"
+        style="@style/MainText"
         android:paddingTop="4dp"
         android:paddingBottom="4dp"
         android:paddingLeft="8dp"

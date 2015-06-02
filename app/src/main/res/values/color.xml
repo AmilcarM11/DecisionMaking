@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
-    <!--
+    <!-- Alternative Colors
     <color name="primaryColor">#3F51B5</color>
     <color name="primaryColorDark">#303f9f</color>
-    <color name="accentColor">#64FFDA</color>
-    <color name="seekerColor">#009688</color>
+    <color name="accentColor">#009688</color>
     -->
+
     <color name="primaryColor">#1E88E5</color>
     <color name="primaryColorDark">#1565C0</color>
     <color name="accentColor">#00B8D4</color>
 
+    <color name="lightGrey">#ddd</color>
     <color name="inconsistentColor">#FF3D00</color>
-    <color name="seekerColor">#00B8D4</color>
+    <color name="seekerColor">@color/accentColor</color>
 
 </resources>
