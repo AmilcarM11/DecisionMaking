@@ -14,6 +14,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.CompoundButton;
+import android.widget.Switch;
 import android.widget.Toast;
 
 import java.text.DecimalFormat;
@@ -39,12 +41,14 @@ public class CompareFragment extends Fragment implements ActionBar.OnNavigationL
     private int mCurrentPage = 0;
     private int mSelectedJudge = 0;
 
+//    private SwitchCompat mSwitch;
     private ViewPager mPager;
     private PagerTabStrip mPagerTabStrip;
     private ComparingPagerAdapter mPageAdapter;
 
     private boolean[] inconsistentCriteria = new boolean[0];
     private double[] consistencies = new double[0];
+    private boolean mCheckConsistencies = false;
 
     DecimalFormat formatter = new DecimalFormat("0.00%");
 
@@ -118,6 +122,8 @@ public class CompareFragment extends Fragment implements ActionBar.OnNavigationL
     public boolean onNavigationItemSelected(int position, long id) {
         mSelectedJudge = position;
         checkConsistency();
+        toastInconsistenciesCount();
+        checkSuggestedValues();
         if(mPageAdapter != null)
             mPageAdapter.refresh();
         return true;
@@ -126,40 +132,53 @@ public class CompareFragment extends Fragment implements ActionBar.OnNavigationL
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
-        if(!getMyActivity().isDrawerOpen())
+        if(!getMyActivity().isDrawerOpen()) {
             inflater.inflate(R.menu.menu_compare, menu);
-    }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        if (id == R.id.action_check) {
-            checkConsistency();
-            return true;
+            // Check toggle
+            MenuItem item = menu.findItem(R.id.check_toggle);
+            item.setActionView(R.layout.check_toggle_view);
+            Switch mSwitch = (Switch) item.getActionView();
+            mSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    mCheckConsistencies = isChecked;
+                    checkSuggestedValues();
+                }
+            });
         }
-        return super.onOptionsItemSelected(item);
     }
 
     @Override
     public void onComparisonChanged(int criteria, int judge) {
-        double oldConsistency = consistencies[criteria];
         consistencies[criteria] = getConsistency(criteria, judge);
         inconsistentCriteria[criteria] = !isConsistencyAcceptable(consistencies[criteria]);
-        double diff = consistencies[criteria] - oldConsistency;
 
         // Set tab strip color
         updateTabStrip();
 
-        // Toast tracking consistency changes
-        String toast = "Consistency" + (diff > 0 ? "--" : "++");
-        Toast.makeText(getActivity(), toast, Toast.LENGTH_SHORT).show();
+        // Reevaluate the suggested values
+        checkSuggestedValues();
     }
 
     private void updateTabStrip() {
         if( inconsistentCriteria[mCurrentPage] ) {
-            mPagerTabStrip.setTabIndicatorColorResource(R.color.inconsistentColor);
+            mPagerTabStrip.setTabColorAlt();
         } else {
-            mPagerTabStrip.setTabIndicatorColorResource(R.color.accentColor);
+            mPagerTabStrip.setTabColorMain();
+        }
+    }
+
+    private void checkSuggestedValues() {
+        ComparisonFragment fragment = (ComparisonFragment) mPageAdapter.getItem(mCurrentPage);
+        if(fragment != null) {
+            if(!mCheckConsistencies) {
+                fragment.hideSuggestedValues();
+            } else if(inconsistentCriteria[mCurrentPage]) {
+                fragment.showSuggestedValues();
+            } else {
+                fragment.hideSuggestedValues();
+            }
         }
     }
 
@@ -185,13 +204,27 @@ public class CompareFragment extends Fragment implements ActionBar.OnNavigationL
             inconsistentCriteria[i] = !isConsistencyAcceptable(consistencies[i]);
         }
 
+        // Toast current-page consistency
+        if(inconsistentCriteria[mCurrentPage]) {
+            double consistency = consistencies[mCurrentPage];
+            Toast.makeText(getActivity(), "Inconsistency: "+ formatter.format(consistency), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void toastInconsistenciesCount() {
         int count = 0;
-        for(boolean b : inconsistentCriteria){
+        for(boolean b : inconsistentCriteria) {
             if(b) count++;
         }
         if(count == 0) {
             Toast.makeText(getActivity(), "Current data is consistent", Toast.LENGTH_SHORT).show();
         } else {
+            // Toast consistency
+            if(inconsistentCriteria[mCurrentPage]) {
+                double consistency = consistencies[mCurrentPage];
+                Toast.makeText(getActivity(), "Inconsistency: "+ formatter.format(consistency), Toast.LENGTH_SHORT).show();
+            }
+
             Toast.makeText(getActivity(), "Found "+count+" inconsistencies", Toast.LENGTH_SHORT).show();
         }
     }
@@ -237,7 +270,8 @@ public class CompareFragment extends Fragment implements ActionBar.OnNavigationL
 
         @Override
         public CharSequence getPageTitle(int position) {
-            return elements().get(position);
+            String s = elements().get(position);
+            return s == null ? "" : s.toUpperCase();
         }
 
         @Override
@@ -252,6 +286,9 @@ public class CompareFragment extends Fragment implements ActionBar.OnNavigationL
                 double consistency = consistencies[mCurrentPage];
                 Toast.makeText(getActivity(), "Inconsistency: "+ formatter.format(consistency), Toast.LENGTH_SHORT).show();
             }
+
+            // Reevaluate the suggested values
+            checkSuggestedValues();
 
             refresh();
         }
@@ -270,8 +307,6 @@ public class CompareFragment extends Fragment implements ActionBar.OnNavigationL
                 updateTabStrip();
             }
         }
-
     }
-
 
 }

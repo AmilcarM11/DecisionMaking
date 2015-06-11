@@ -6,7 +6,6 @@ import java.util.List;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
@@ -24,9 +23,6 @@ public class ComboSeekBar extends SeekBar {
     private OnItemClickListener mItemClickListener;
     private Dot prevSelected = null;
     private boolean isSelected = false;
-    private int mColor;
-    private int mTextSize;
-    private boolean mIsMultiline;
 
     private int mIndex = 0;
 
@@ -50,9 +46,9 @@ public class ComboSeekBar extends SeekBar {
         super(context, attrs);
         TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.ComboSeekBar);
 
-        mColor = a.getColor(R.styleable.ComboSeekBar_myColor, R.color.accentColor);
-        mTextSize = a.getDimensionPixelSize(R.styleable.ComboSeekBar_textSize, 18);
-        mIsMultiline = a.getBoolean(R.styleable.ComboSeekBar_multiline, false);
+        int mColor = a.getColor(R.styleable.ComboSeekBar_myColor, R.color.seekerColor);
+        int mTextSize = a.getDimensionPixelSize(R.styleable.ComboSeekBar_textSize, 18);
+        boolean mIsMultiline = a.getBoolean(R.styleable.ComboSeekBar_multiline, false);
         // do something with str
 
         a.recycle();
@@ -75,16 +71,6 @@ public class ComboSeekBar extends SeekBar {
     public boolean onTouchEvent(MotionEvent event) {
         isSelected = false;
         return super.onTouchEvent(event);
-    }
-
-    /**
-     * @param color
-     *            color.
-     */
-    public void setColor(int color) {
-        mColor = color;
-        mThumb.setColor(color);
-        setProgressDrawable(new StepBarDrawable((StepBarDrawable) this.getProgressDrawable(), this, mThumb.getRadius(), mDots, color, mTextSize, mIsMultiline));
     }
 
     public boolean changeValue(int increment) {
@@ -111,11 +97,7 @@ public class ComboSeekBar extends SeekBar {
             throw new IllegalArgumentException("Position is out of bounds:" + position);
         }
         for (Dot dot : mDots) {
-            if (dot.id == position) {
-                dot.isSelected = true;
-            } else {
-                dot.isSelected = false;
-            }
+            dot.isSelected = dot.id == position;
         }
 
         isSelected = true;
@@ -163,29 +145,36 @@ public class ComboSeekBar extends SeekBar {
     protected synchronized void onDraw(Canvas canvas) {
         if ((mThumb != null) && (mDots.size() > 1)) {
             if (isSelected) {
+                // Disable the suggestion first.
+                mThumb.setSuggestionBounds(null);
+
                 for (Dot dot : mDots) {
+                    // Find the selected dot for mThumb.
                     if (dot.isSelected) {
                         Rect bounds = mThumb.copyBounds();
                         bounds.right = dot.mX;
                         bounds.left = dot.mX;
                         mThumb.setBounds(bounds);
-                        break;
+                    }
+                    // If there is a suggested dot, let mThumb know.
+                    if (dot.isSuggested) {
+                        Rect bounds = mThumb.copyBounds();
+                        bounds.right = dot.mX;
+                        bounds.left = dot.mX;
+                        mThumb.setSuggestionBounds(bounds);
                     }
                 }
             } else {
                 int intervalWidth = mDots.get(1).mX - mDots.get(0).mX;
                 Rect bounds = mThumb.copyBounds();
                 // find nearest dot
-                if ((mDots.get(mDots.size() - 1).mX - bounds.centerX()) < 0) {
-                    bounds.right = mDots.get(mDots.size() - 1).mX;
-                    bounds.left = mDots.get(mDots.size() - 1).mX;
+                Dot endDot = mDots.get(mDots.size()-1);
+                if ((endDot.mX - bounds.centerX()) < 0) {
+                    bounds.right = endDot.mX;
+                    bounds.left = endDot.mX;
                     mThumb.setBounds(bounds);
-
-                    for (Dot dot : mDots) {
-                        dot.isSelected = false;
-                    }
-                    mDots.get(mDots.size() - 1).isSelected = true;
-                    handleClick(mDots.get(mDots.size() - 1));
+                    endDot.isSelected = true;
+                    handleClick(endDot);
                 } else {
                     for (int i = 0; i < mDots.size(); i++) {
                         if (Math.abs(mDots.get(i).mX - bounds.centerX()) <= (intervalWidth / 2)) {
@@ -199,13 +188,22 @@ public class ComboSeekBar extends SeekBar {
                         }
                     }
                 }
+                for(Dot dot : mDots) {
+                    if(dot.isSuggested) {
+                        bounds = mThumb.copyBounds();
+                        bounds.right = dot.mX;
+                        bounds.left = dot.mX;
+                        mThumb.setSuggestionBounds(bounds);
+                    }
+                }
             }
         }
         super.onDraw(canvas);
     }
 
     private void handleClick(Dot selected) {
-        if ((prevSelected == null) || (prevSelected.equals(selected) == false)) {
+        if (prevSelected == null || !prevSelected.equals(selected)) {
+            isSelected = true;
             if (mItemClickListener != null) {
                 mItemClickListener.onItemClick(null, this, mIndex, selected.id);
             }
@@ -265,11 +263,32 @@ public class ComboSeekBar extends SeekBar {
         public int mX;
         public String text;
         public boolean isSelected = false;
+        public boolean isSuggested = false;
         public int value;
 
         @Override
         public boolean equals(Object o) {
-            return ((Dot) o).id == id;
+            return o != null && o instanceof Dot && ((Dot) o).id == id;
         }
+    }
+
+    public void setSuggestedValue(final int suggestedValue) {
+        for(int i = 0; i < mDots.size(); i++) {
+            Dot dot = mDots.get(i);
+
+            // Removes the "suggestion"
+            if(suggestedValue == 0) {
+                dot.isSuggested = false;
+
+            } else {
+                // Finds the "suggested" dot
+                if(dot.value == suggestedValue) {
+                    dot.isSuggested = true;
+                } else {
+                    dot.isSuggested = false;
+                }
+            }
+        }
+        invalidate();
     }
 }

@@ -195,7 +195,7 @@ public class EditActivity extends ActionBarActivity implements DialogAddFragment
 
         @Override
         public CharSequence getPageTitle(int position) {
-            return getString(titlesRes[position]);
+            return getString(titlesRes[position]).toUpperCase();
         }
 
         @Override

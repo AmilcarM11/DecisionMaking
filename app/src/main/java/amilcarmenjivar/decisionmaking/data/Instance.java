@@ -264,7 +264,7 @@ public class Instance {
         int judges = getJudges().size();
         double[] vector = new double[rawData[criteria].length];
 
-        if(judge == -1) { // Check overall consistency
+        if(judge == -1) { // Include all judges' preferences
             for(int i = 0; i<vector.length; i++) {
                 double score = 1.0;
                 for(int j = 0; j < judges; j++) {
@@ -272,7 +272,7 @@ public class Instance {
                 }
                 vector[i] = Math.pow(score, 1.0/judges);
             }
-        } else { // Check per-judge consistency
+        } else { // Use per-judge preference
             for(int i = 0; i<vector.length; i++) {
                 vector[i] = translatePreference(rawData[criteria][i][judge]);
             }

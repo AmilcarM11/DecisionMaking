@@ -153,7 +153,7 @@ public class ResultsFragment extends Fragment implements ResultProvider {
 
         @Override
         public CharSequence getPageTitle(int position) {
-            return getString(Pages.values()[position].stringRes);
+            return getString(Pages.values()[position].stringRes).toUpperCase();
         }
 
         @Override

@@ -54,6 +54,25 @@ public class ComparisonFragment extends Fragment {
         return rootView;
     }
 
+    public void showSuggestedValues(){
+        int n = mElements == 0 ? DataManager.getCandidates().size() : DataManager.getAttributes().size();
+        double[] comparisonVector = mElements == 0 ?
+                DataManager.getLoadedInstance().getAttributePreferenceVector(mCriteria, mJudge)
+                : DataManager.getLoadedInstance().getProfilePreferenceVector(mCriteria, mJudge);
+        int[] suggestions = DecisionAlgorithm.getConsistentSuggestions(n, comparisonVector);
+        if(suggestions.length == mBars.size()) {
+            for(int i = 0; i<suggestions.length; i++) {
+                mBars.get(i).setSuggestedValue(suggestions[i]);
+            }
+        }
+    }
+
+    public void hideSuggestedValues() {
+        for(ComboSeekBar bar : mBars) {
+            bar.setSuggestedValue(0);
+        }
+    }
+
     public void updateInfo(int newElements, int newCriteria, int newJudge) {
         if(newElements != mElements) {
             mElements = newElements;

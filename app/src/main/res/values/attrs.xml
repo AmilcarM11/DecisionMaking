@@ -8,6 +8,7 @@
 
     <declare-styleable name="PagerTabStrip">
         <attr name="tabColor" format="color" />
+        <attr name="tabColorAlt" format="color" />
         <attr name="drawFullUnderline" format="boolean" />
     </declare-styleable>
 

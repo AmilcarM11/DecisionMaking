@@ -12,4 +12,6 @@
 
     <dimen name="drawerListMaxHeight">192dp</dimen>
 
+    <dimen name="check_toggle_min_width">40dip</dimen>
+
 </resources>

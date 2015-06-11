@@ -19,8 +19,14 @@
         <item name="colorPrimary">@color/primaryColor</item>
         <item name="colorPrimaryDark">@color/primaryColorDark</item>
         <item name="colorAccent">@color/accentColor</item>
+
+        <!-- You can also set colorControlNormal, colorControlActivated
+         colorControlHighlight, and colorSwitchThumbNormal. -->
     </style>
 
+    <style name="MyActionBar" parent="Base.ThemeOverlay.AppCompat.Dark.ActionBar">
+
+    </style>
 
     <style name="ListItemText" parent="@android:style/TextAppearance.Medium">
         <item name="android:layout_height">@dimen/dropDownListPreferredItemHeight</item>
@@ -57,6 +63,28 @@
         <item name="android:textColor">#000000</item>
         <item name="android:fontFamily">sans-serif</item>
         <item name="android:layout_gravity">center_vertical</item>
+    </style>
+
+    <style name="PagerTabStripText">
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:fontFamily">sans-serif</item>
+    </style>
+
+    <style name="ButtonText">
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <style name="CheckToggle">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">fill_parent</item>
+        <item name="android:textOn"></item>
+        <item name="android:textOff"></item>
+        <item name="android:track">@drawable/check_toggle_background</item>
+        <item name="android:switchMinWidth">@dimen/check_toggle_min_width</item>
     </style>
 
 

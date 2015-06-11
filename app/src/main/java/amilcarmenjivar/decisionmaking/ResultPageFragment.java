@@ -34,6 +34,7 @@ public class ResultPageFragment extends Fragment {
         super.onCreate(savedInstanceState);
 
         int mPage = getArguments().getInt(ARG_PAGE);
+        // TODO: provider becomes null.
         if(provider != null) {
             mTitles = provider.getCriteriaForPage(mPage);
             mElements = provider.getElementsForPage(mPage);

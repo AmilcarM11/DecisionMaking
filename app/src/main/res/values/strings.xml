@@ -59,8 +59,8 @@
     <string name="title_activity_start">StartActivity</string>
     <string name="load_instance">Load Instance</string>
     <string name="new_instance">New Instance</string>
-    <string name="save_changes">Save</string>
-    <string name="discard_changes">Discard</string>
+    <string name="save_changes">SAVE</string>
+    <string name="discard_changes">DISCARD</string>
     <string name="enter_instance_name">Enter Instance name</string>
 
 </resources>

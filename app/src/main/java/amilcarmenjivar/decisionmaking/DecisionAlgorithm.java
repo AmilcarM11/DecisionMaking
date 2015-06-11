@@ -133,6 +133,70 @@ public class DecisionAlgorithm {
         return consistencyVector;
     }
 
+    public static int[] getConsistentSuggestions(int n, double[] comparisonVector) {
+        double[][] matrix = matrizPreferencia(n, comparisonVector);
+        double[] vp = vectorPreferencia(n, matrix);
+        double alpha = 0.4;
+
+        // Assuming this method will only be invoked when preference vector is inconsistent
+        double consistency;
+        int maximumIterationsAllowed = 100;
+
+        // Generate new preferences until we have a consistent matrix.
+        do {
+            // Generate next preferences
+            for(int i = 0; i<n; i++) {
+                for(int j = 0; j<n; j++) {
+                    double value = Math.pow(matrix[i][j], alpha) * Math.pow(vp[i]/vp[j], 1-alpha);
+                    value = Math.min(value, 9);
+                    value = Math.max(value, 1.0/9.0);
+                    matrix[i][j] = value;
+                }
+            }
+            vp = vectorPreferencia(n, matrix);
+
+            // Check consistency
+            double[] consistencyVector = new double[n];
+            for(int i = 0; i<n; i++) {
+                consistencyVector[i] = 0.0;
+                for(int e = 0; e<n; e++) {
+                    consistencyVector[i] += matrix[i][e] * vp[e];
+                }
+            }
+            consistency = calculateConsistency(n, consistencyVector);
+
+        } while(maximumIterationsAllowed-- > 0 && isConsistencyAcceptable(consistency));
+
+        // Transform the new matrix into a comparison vector.
+        int pairs = n * (n-1) / 2;
+        int[] suggestion = new int[pairs];
+        int x = 0;
+        for (int i = 0; i < n; i++) {
+            for(int j = i+1; j<n; j++) {
+                // Did we find a consistent matrix? if not, just use the original preference vector
+                double value = maximumIterationsAllowed == 0 ? comparisonVector[x] : matrix[i][j];
+
+                // Convert the new preferences back to integer form
+                if( value < 1 ) {
+                    suggestion[x] = (int) (-Math.round(1.0/value));
+                    if(suggestion[x] < -9)
+                        suggestion[x] = -9;
+                } else {
+                    suggestion[x] = (int) (Math.round(value));
+                    if(suggestion[x] > 9)
+                        suggestion[x] = 9;
+                }
+                if(suggestion[x] == -1) // Just because this is how ComboSeekBar is designed to work.
+                    suggestion[x] = 1;
+                x++;
+            }
+        }
+
+        return suggestion;
+    }
+
+
+
     public static double[] translatePreferences(int[] rawPreferences) {
         double[] preferences = new double[rawPreferences.length];
         for (int j = 0; j < rawPreferences.length; j++) {
