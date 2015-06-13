@@ -38,6 +38,7 @@ public class Instance {
     private double[][] profileConsistencyMatrix = new double[0][];
 
     private Result result = null;
+    private ResultData resultData = null;
 
     // ----- Constructors ----- //
 
@@ -314,6 +315,16 @@ public class Instance {
         return DecisionAlgorithm.getResults(candidates, attributes, profiles, 1, attributesData, profilesData);
     }
 
+    public ResultData getResultData() {
+        checkValidity();
+
+        if(resultData == null) {
+            Result result = getResult();
+            resultData = new ResultData(result);
+        }
+        return resultData;
+    }
+
     private int[][][] justOneJudge(int[][][] rawData, int criteria, int elements, int judge) {
         int pairs = (elements * (elements - 1)) / 2;
         int[][][] foo = new int[criteria][pairs][1];
@@ -380,6 +391,7 @@ public class Instance {
         }
 
         this.result = null;
+        this.resultData = null;
     }
 
 

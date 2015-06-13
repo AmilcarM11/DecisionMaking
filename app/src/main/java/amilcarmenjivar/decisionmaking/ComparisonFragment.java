@@ -50,26 +50,31 @@ public class ComparisonFragment extends Fragment {
         String judge = DataManager.getJudges().get(mJudge);
 
         // Asynchronously populate the comparison table.
+        mBars = new ArrayList<ComboSeekBar>();
         new PopulateComparisonTableTask(table, inflater, data, criteria, judge).execute();
         return rootView;
     }
 
-    public void showSuggestedValues(){
-        int n = mElements == 0 ? DataManager.getCandidates().size() : DataManager.getAttributes().size();
-        double[] comparisonVector = mElements == 0 ?
-                DataManager.getLoadedInstance().getAttributePreferenceVector(mCriteria, mJudge)
-                : DataManager.getLoadedInstance().getProfilePreferenceVector(mCriteria, mJudge);
-        int[] suggestions = DecisionAlgorithm.getConsistentSuggestions(n, comparisonVector);
-        if(suggestions.length == mBars.size()) {
-            for(int i = 0; i<suggestions.length; i++) {
-                mBars.get(i).setSuggestedValue(suggestions[i]);
+    public void showSuggestedValues() {
+        if(mBars != null) {
+            int n = mElements == 0 ? DataManager.getCandidates().size() : DataManager.getAttributes().size();
+            double[] comparisonVector = mElements == 0 ?
+                    DataManager.getLoadedInstance().getAttributePreferenceVector(mCriteria, mJudge)
+                    : DataManager.getLoadedInstance().getProfilePreferenceVector(mCriteria, mJudge);
+            int[] suggestions = DecisionAlgorithm.getConsistentSuggestions(n, comparisonVector);
+            if(suggestions.length == mBars.size()) {
+                for(int i = 0; i<suggestions.length; i++) {
+                    mBars.get(i).setSuggestedValue(suggestions[i]);
+                }
             }
         }
     }
 
     public void hideSuggestedValues() {
-        for(ComboSeekBar bar : mBars) {
-            bar.setSuggestedValue(0);
+        if(mBars != null) {
+            for (ComboSeekBar bar : mBars) {
+                bar.setSuggestedValue(0);
+            }
         }
     }
 
@@ -88,10 +93,12 @@ public class ComparisonFragment extends Fragment {
         }
 
         // Update the values on the seek bars
-        Data data = mElements == 0 ? DataManager.getAttributeData() : DataManager.getProfileData();
-        int[][][] rawData = data.getRawData();
-        for(int i=0; i< mBars.size(); i++) {
-            mBars.get(i).setInfo(i, rawData[mCriteria][i][mJudge]);
+        if(mBars != null) {
+            Data data = mElements == 0 ? DataManager.getAttributeData() : DataManager.getProfileData();
+            int[][][] rawData = data.getRawData();
+            for(int i=0; i< mBars.size(); i++) {
+                mBars.get(i).setInfo(i, rawData[mCriteria][i][mJudge]);
+            }
         }
     }
 
@@ -187,7 +194,7 @@ public class ComparisonFragment extends Fragment {
 
         @Override
         protected void onPreExecute() {
-            mBars = new ArrayList<ComboSeekBar>();
+            mBars.clear();
         }
 
         @Override

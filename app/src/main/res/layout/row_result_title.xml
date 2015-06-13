@@ -8,9 +8,10 @@
     android:paddingRight="8dp">
 
     <TextView
+        android:layout_span="3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
+        style="@style/Result_TitleText"
         android:id="@+id/result_title" />
 
 </TableRow>

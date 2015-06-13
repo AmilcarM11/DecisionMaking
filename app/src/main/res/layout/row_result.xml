@@ -2,20 +2,27 @@
 <TableRow xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingLeft="16dp"
-    android:paddingRight="16dp">
+    android:paddingLeft="12dp"
+    android:paddingRight="12dp">
 
-
+    <ImageView
+        android:id="@+id/result_star_icon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingRight="4dp"
+        android:paddingEnd="4dp"
+        android:tint="@color/accentColor"
+        android:src="@drawable/ic_star_empty" />
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:textAppearance="?android:attr/textAppearanceMedium"
+        style="@style/Result_ElementText"
         android:id="@+id/result_candidate" />
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
+        style="@style/Result_ElementText"
         android:id="@+id/result_score" />
 
 </TableRow>

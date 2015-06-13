@@ -36,12 +36,13 @@ public class CompareFragment extends Fragment implements ActionBar.OnNavigationL
     private static final String ARG_ELEMENTS = "selected_elements";
     private static final String ARG_CURRENT_PAGE = "selected_page";
     private static final String ARG_SELECTED_JUDGE = "selected_judge";
+    private static final String STATE_CHECK_CONSISTENCY = "check_consistency";
 
     private int mElements = 0;
     private int mCurrentPage = 0;
     private int mSelectedJudge = 0;
 
-//    private SwitchCompat mSwitch;
+    private Switch mSwitch = null;
     private ViewPager mPager;
     private PagerTabStrip mPagerTabStrip;
     private ComparingPagerAdapter mPageAdapter;
@@ -61,9 +62,14 @@ public class CompareFragment extends Fragment implements ActionBar.OnNavigationL
         mCurrentPage = getArguments().getInt(ARG_CURRENT_PAGE, 0);
         inconsistentCriteria = new boolean[elements().size()];
         consistencies = new double[elements().size()];
+
         if(savedInstanceState != null ) {
             mCurrentPage = savedInstanceState.getInt(ARG_CURRENT_PAGE, 0);
             mSelectedJudge = savedInstanceState.getInt(ARG_SELECTED_JUDGE, 0);
+            mCheckConsistencies = savedInstanceState.getBoolean(STATE_CHECK_CONSISTENCY, false);
+        }
+        if(mSwitch != null) {
+            mSwitch.setChecked(mCheckConsistencies);
         }
     }
 
@@ -105,10 +111,14 @@ public class CompareFragment extends Fragment implements ActionBar.OnNavigationL
 
     @Override
     public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
-        super.onViewStateRestored(savedInstanceState);
         if(savedInstanceState != null) {
             mSelectedJudge = savedInstanceState.getInt(ARG_SELECTED_JUDGE, mSelectedJudge);
+            mCheckConsistencies = savedInstanceState.getBoolean(STATE_CHECK_CONSISTENCY, false);
         }
+        if(mSwitch != null) {
+            mSwitch.setChecked(mCheckConsistencies);
+        }
+        super.onViewStateRestored(savedInstanceState);
     }
 
     @Override
@@ -116,6 +126,7 @@ public class CompareFragment extends Fragment implements ActionBar.OnNavigationL
         super.onSaveInstanceState(outState);
         outState.putInt(ARG_CURRENT_PAGE, mCurrentPage); // Current page
         outState.putInt(ARG_SELECTED_JUDGE, mSelectedJudge); // Selected Judge
+        outState.putBoolean(STATE_CHECK_CONSISTENCY, mCheckConsistencies);
     }
 
     @Override
@@ -138,7 +149,7 @@ public class CompareFragment extends Fragment implements ActionBar.OnNavigationL
             // Check toggle
             MenuItem item = menu.findItem(R.id.check_toggle);
             item.setActionView(R.layout.check_toggle_view);
-            Switch mSwitch = (Switch) item.getActionView();
+            mSwitch = (Switch) item.getActionView();
             mSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -146,6 +157,7 @@ public class CompareFragment extends Fragment implements ActionBar.OnNavigationL
                     checkSuggestedValues();
                 }
             });
+            mSwitch.setChecked(mCheckConsistencies);
         }
     }
 
